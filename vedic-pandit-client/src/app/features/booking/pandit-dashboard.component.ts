@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AccountService, Booking, Pandit, photoToDataUrl } from '../../core/services/account.service';
 import { STATES } from '../../core/services/location.service';
-import { BOOKING_CSS, BookingOffComponent, FaceComponent, PUJAS, SAMPRADAYAS, SPOKEN, bookingStatusText, fmtDate, panditStatusText, useTx } from './booking-ui';
+import { BOOKING_CSS, BookingOffComponent, FaceComponent, InFlagComponent, PUJAS, SAMPRADAYAS, SPOKEN, bookingStatusText, fmtDate, intlMobile, localMobile, panditStatusText, useTx, validMobile } from './booking-ui';
 
 type Form = Omit<Pandit, 'uid' | 'status' | 'createdAt' | 'approvedAt' | 'rejectReason'>;
 
@@ -11,7 +11,7 @@ type Form = Omit<Pandit, 'uid' | 'status' | 'createdAt' | 'approvedAt' | 'reject
 @Component({
   selector: 'vp-pandit-dashboard',
   standalone: true,
-  imports: [FormsModule, RouterLink, BookingOffComponent, FaceComponent],
+  imports: [FormsModule, RouterLink, BookingOffComponent, FaceComponent, InFlagComponent],
   template: `
   <div class="wrap page narrow">
     @if (!acc.configured) { <vp-booking-off /> }
@@ -43,8 +43,10 @@ type Form = Omit<Pandit, 'uid' | 'status' | 'createdAt' | 'approvedAt' | 'reject
         <div class="field"><label for="n">{{ t.tx('Name (as devotees should see it)', 'नाम (जैसा यजमान देखें)') }}</label>
           <input id="n" class="input" name="name" [(ngModel)]="f.name" required [placeholder]="t.tx('Pt. Ramesh Sharma', 'पं. रमेश शर्मा')"></div>
         <div class="row2">
-          <div class="field"><label for="ph">{{ t.tx('Mobile number', 'मोबाइल नंबर') }}</label><input id="ph" class="input" name="phone" type="tel" inputmode="tel" [(ngModel)]="f.phone" required></div>
-          <div class="field"><label for="wa">{{ t.tx('WhatsApp (if different)', 'व्हाट्सऐप (अगर अलग हो)') }}</label><input id="wa" class="input" name="wa" type="tel" inputmode="tel" [(ngModel)]="f.whatsapp"></div>
+          <div class="field"><label for="ph">{{ t.tx('Mobile number', 'मोबाइल नंबर') }}</label>
+            <div class="phone"><span class="cc"><vp-in-flag /> +91</span><input id="ph" name="phone" type="tel" inputmode="numeric" maxlength="10" placeholder="98765 43210" [(ngModel)]="f.phone" (input)="f.phone = digits(f.phone)" required></div></div>
+          <div class="field"><label for="wa">{{ t.tx('WhatsApp (if different)', 'व्हाट्सऐप (अगर अलग हो)') }}</label>
+            <div class="phone"><span class="cc"><vp-in-flag /> +91</span><input id="wa" name="wa" type="tel" inputmode="numeric" maxlength="10" [(ngModel)]="f.whatsapp" (input)="f.whatsapp = digits(f.whatsapp)"></div></div>
         </div>
         <div class="row2">
           <div class="field"><label for="st">{{ t.tx('State', 'राज्य') }}</label>
@@ -178,7 +180,7 @@ export class PanditDashboardComponent {
       if (u && mp) this.stop = this.acc.watchBookings('pandit', b => this.bookings.set(b));
       if (!mp && !this.f.name) {
         const p = this.acc.profile();
-        if (p) { this.f.name = p.name; this.f.phone = p.phone; this.f.city = p.city; }
+        if (p) { this.f.name = p.name; this.f.phone = localMobile(p.phone); this.f.city = p.city; if (p.state) { this.f.state = p.state; this.stateSig.set(p.state); } }
       }
     });
     inject(DestroyRef).onDestroy(() => this.stop?.());
@@ -201,12 +203,13 @@ export class PanditDashboardComponent {
   pStatus(p: Pandit) { return panditStatusText(p.status, this.t.hi()); }
   bStatus(b: Booking) { return bookingStatusText(b.status, this.t.hi()); }
   date(d: string) { return fmtDate(d, this.t.hi()); }
+  digits(v: string) { return (v || '').replace(/\D/g, '').slice(0, 10); }
   toggle(list: string[], v: string) { const i = list.indexOf(v); if (i >= 0) list.splice(i, 1); else list.push(v); }
 
   startEdit() {
     const mp = this.acc.myPandit(); if (!mp) return;
     const { uid, status, createdAt, approvedAt, rejectReason, ...rest } = mp;
-    this.f = { ...this.blank(), ...rest, languages: [...(rest.languages ?? [])], pujas: [...(rest.pujas ?? [])] };
+    this.f = { ...this.blank(), ...rest, phone: localMobile(rest.phone), whatsapp: localMobile(rest.whatsapp), languages: [...(rest.languages ?? [])], pujas: [...(rest.pujas ?? [])] };
     this.stateSig.set(this.f.state);
     this.editing.set(true); this.msg.set('');
   }
@@ -222,7 +225,8 @@ export class PanditDashboardComponent {
     this.stateSig.set(this.f.state);
     const f = this.f;
     const bad = !f.name.trim() ? this.t.tx('Please enter your name.', 'नाम लिखें।')
-      : f.phone.replace(/\D/g, '').length < 10 ? this.t.tx('Please enter a 10-digit mobile number.', '10 अंकों का मोबाइल नंबर लिखें।')
+      : !validMobile(f.phone) ? this.t.tx('Please enter a valid 10-digit Indian mobile number.', 'कृपया सही 10 अंकों का मोबाइल नंबर लिखें।')
+      : f.whatsapp && !validMobile(f.whatsapp) ? this.t.tx('Please check the WhatsApp number (10 digits).', 'व्हाट्सऐप नंबर जाँचें (10 अंक)।')
       : !f.state || !f.city.trim() ? this.t.tx('Please choose your state and city.', 'राज्य और शहर चुनें।')
       : !f.pujas.length ? this.t.tx('Choose at least one puja.', 'कम से कम एक पूजा चुनें।')
       : !f.languages.length ? this.t.tx('Choose at least one language.', 'कम से कम एक भाषा चुनें।')
@@ -230,7 +234,7 @@ export class PanditDashboardComponent {
     if (bad) return this.msg.set(bad);
     this.busy.set(true);
     try {
-      await this.acc.savePandit({ ...f, name: f.name.trim(), phone: f.phone.trim(), whatsapp: f.whatsapp.trim(), city: f.city.trim(),
+      await this.acc.savePandit({ ...f, name: f.name.trim(), phone: intlMobile(f.phone), whatsapp: intlMobile(f.whatsapp), city: f.city.trim(),
         fee: f.fee.trim(), about: f.about.trim(), experience: Math.max(0, Math.min(80, Number(f.experience) || 0)) });
       this.editing.set(false);
     } catch (e) { this.msg.set(this.acc.errorText(e, this.t.hi())); }

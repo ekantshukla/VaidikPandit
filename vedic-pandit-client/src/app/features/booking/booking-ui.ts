@@ -67,6 +67,28 @@ export function fmtDate(iso: string, hi: boolean): string {
   return isNaN(+d) ? iso : d.toLocaleDateString(hi ? 'hi-IN' : 'en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+/** Indian mobile numbers: the form keeps 10 digits; the database keeps +91XXXXXXXXXX. */
+export function localMobile(stored: string | undefined): string {
+  const d = (stored || '').replace(/\D/g, '');
+  return d.length > 10 && d.startsWith('91') ? d.slice(-10) : d.length === 11 && d.startsWith('0') ? d.slice(1) : d.slice(0, 10);
+}
+export const intlMobile = (ten: string) => (ten ? '+91' + ten.replace(/\D/g, '') : '');
+export const validMobile = (ten: string) => /^[6-9]\d{9}$/.test((ten || '').replace(/\D/g, ''));
+/** "+91 77606 88931" for display. */
+export function showMobile(stored: string | undefined): string {
+  const d = localMobile(stored);
+  return d.length === 10 ? `+91 ${d.slice(0, 5)} ${d.slice(5)}` : (stored || '');
+}
+
+/** Small Indian flag (drawn, because the 🇮🇳 emoji shows as "IN" on Windows). */
+@Component({
+  selector: 'vp-in-flag',
+  standalone: true,
+  template: `<svg viewBox="0 0 30 20" width="24" height="16" aria-hidden="true"><rect width="30" height="20" rx="2" fill="#fff"/><rect width="30" height="6.67" rx="2" fill="#FF9933"/><rect y="6.67" width="30" height="6.66" fill="#fff"/><rect y="13.33" width="30" height="6.67" rx="2" fill="#138808"/><circle cx="15" cy="10" r="2.6" fill="none" stroke="#000080" stroke-width=".7"/><circle cx="15" cy="10" r=".6" fill="#000080"/></svg>`,
+  styles: [`:host { display: inline-flex; } svg { border-radius: 2px; box-shadow: 0 0 0 1px rgba(0,0,0,.12); }`],
+})
+export class InFlagComponent {}
+
 /** Shown on every booking page when the site owner has not connected Firebase yet. */
 @Component({
   selector: 'vp-booking-off',
@@ -122,5 +144,10 @@ export const BOOKING_CSS = `
   .bk .who { min-width: 0; flex: 1; } .bk b { display: block; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .bk small { color: var(--muted); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .note { font-size: var(--s-1); color: var(--faint); }
+  .phone { display: flex; align-items: stretch; border: 1.5px solid var(--line); border-radius: var(--r-sm); background: var(--card); overflow: hidden; }
+  .phone:focus-within { border-color: var(--ink); }
+  .phone .cc { display: inline-flex; align-items: center; gap: 6px; padding: 0 10px; background: var(--paper); border-right: 1.5px solid var(--line);
+    font-weight: 600; color: var(--ink); flex: none; }
+  .phone input { border: 0; outline: none; flex: 1; min-width: 0; padding: 10px 12px; min-height: 44px; font: inherit; background: transparent; letter-spacing: .04em; }
   @media (max-width: 560px) { .row2 { grid-template-columns: minmax(0, 1fr); } .actions .btn { flex: 1 1 auto; } }
 `;

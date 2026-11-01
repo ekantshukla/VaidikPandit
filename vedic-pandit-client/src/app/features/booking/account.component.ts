@@ -2,13 +2,14 @@ import { Component, DestroyRef, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AccountService, Booking, Role, photoToDataUrl } from '../../core/services/account.service';
-import { BOOKING_CSS, BookingOffComponent, FaceComponent, PUJAS, bookingStatusText, fmtDate, panditStatusText, useTx } from './booking-ui';
+import { BOOKING_CSS, BookingOffComponent, FaceComponent, InFlagComponent, PUJAS, bookingStatusText, fmtDate, intlMobile, localMobile, panditStatusText, showMobile, useTx, validMobile } from './booking-ui';
+import { LocationService, STATES } from '../../core/services/location.service';
 
 /** Log in / sign up (devotee or Pandit), then the profile and "My bookings". */
 @Component({
   selector: 'vp-account',
   standalone: true,
-  imports: [FormsModule, RouterLink, BookingOffComponent, FaceComponent],
+  imports: [FormsModule, RouterLink, BookingOffComponent, FaceComponent, InFlagComponent],
   template: `
   <div class="wrap page narrow">
     @if (!acc.configured) { <vp-booking-off /> }
@@ -31,10 +32,21 @@ import { BOOKING_CSS, BookingOffComponent, FaceComponent, PUJAS, bookingStatusTe
             </div>
           </div>
           <div class="field"><label for="nm">{{ t.tx('Full name', 'पूरा नाम') }}</label><input id="nm" class="input" name="name" [(ngModel)]="name" required autocomplete="name"></div>
-          <div class="row2">
-            <div class="field"><label for="ph">{{ t.tx('Mobile number', 'मोबाइल नंबर') }}</label><input id="ph" class="input" name="phone" [(ngModel)]="phone" type="tel" inputmode="tel" required autocomplete="tel"></div>
-            <div class="field"><label for="ct">{{ t.tx('City', 'शहर') }}</label><input id="ct" class="input" name="city" [(ngModel)]="city" autocomplete="address-level2"></div>
-          </div>
+          <div class="field"><label for="ph">{{ t.tx('Mobile number', 'मोबाइल नंबर') }}</label>
+              <div class="phone"><span class="cc"><vp-in-flag /> +91</span><input id="ph" name="phone" [(ngModel)]="phone" type="tel" inputmode="numeric" maxlength="10"
+                autocomplete="tel-national" placeholder="98765 43210" (input)="phone = digits(phone)"></div></div>
+            <div class="row2">
+              <div class="field"><label for="st">{{ t.tx('State', 'राज्य') }}</label>
+                <select id="st" class="input" name="state" [(ngModel)]="state" (ngModelChange)="city = ''">
+                  <option value="">—</option>
+                  @for (st of states; track st.n) { <option [value]="st.n">{{ t.hi() ? st.h : st.n }}</option> }
+                </select></div>
+              <div class="field"><label for="ct">{{ t.tx('City / district', 'शहर / ज़िला') }}</label>
+                <select id="ct" class="input" name="city" [(ngModel)]="city" [disabled]="!state">
+                  <option value="">—</option>
+                  @for (c of cities(); track c) { <option [value]="c">{{ c }}</option> }
+                </select></div>
+            </div>
         }
         <div class="field"><label for="em">{{ t.tx('Email', 'ईमेल') }}</label><input id="em" class="input" name="email" [(ngModel)]="email" type="email" required autocomplete="email"></div>
         @if (mode() !== 'reset') {
@@ -72,7 +84,8 @@ import { BOOKING_CSS, BookingOffComponent, FaceComponent, PUJAS, bookingStatusTe
         </div>
         <div class="who">
           <h1>{{ p?.name || acc.user()?.email }}</h1>
-          <p class="muted">{{ acc.user()?.email }}@if (p?.phone) { · {{ p?.phone }} }@if (p?.city) { · {{ p?.city }} }</p>
+          <p class="muted">{{ acc.user()?.email }}@if (p?.phone) { · {{ show(p?.phone) }} }</p>
+          @if (p?.city || p?.state) { <p class="muted loc">📍 {{ placeText(p?.city, p?.state) }}</p> }
           <p class="tags">
             <span class="tag">{{ p?.role === 'pandit' ? t.tx('Pandit', 'पंडित') : t.tx('Devotee', 'यजमान') }}</span>
             @if (acc.isAdmin()) { <span class="tag ok">Admin</span> }
@@ -122,10 +135,21 @@ import { BOOKING_CSS, BookingOffComponent, FaceComponent, PUJAS, bookingStatusTe
         <summary>{{ t.tx('Edit profile', 'प्रोफ़ाइल बदलें') }}</summary>
         <form class="stack" (ngSubmit)="saveProfile()">
           <div class="field"><label for="enm">{{ t.tx('Full name', 'पूरा नाम') }}</label><input id="enm" class="input" name="ename" [(ngModel)]="name" required></div>
-          <div class="row2">
-            <div class="field"><label for="eph">{{ t.tx('Mobile number', 'मोबाइल नंबर') }}</label><input id="eph" class="input" name="ephone" [(ngModel)]="phone" type="tel"></div>
-            <div class="field"><label for="ect">{{ t.tx('City', 'शहर') }}</label><input id="ect" class="input" name="ecity" [(ngModel)]="city"></div>
-          </div>
+          <div class="field"><label for="eph">{{ t.tx('Mobile number', 'मोबाइल नंबर') }}</label>
+              <div class="phone"><span class="cc"><vp-in-flag /> +91</span><input id="eph" name="ephone" [(ngModel)]="phone" type="tel" inputmode="numeric" maxlength="10"
+                autocomplete="tel-national" placeholder="98765 43210" (input)="phone = digits(phone)"></div></div>
+            <div class="row2">
+              <div class="field"><label for="est">{{ t.tx('State', 'राज्य') }}</label>
+                <select id="est" class="input" name="estate" [(ngModel)]="state" (ngModelChange)="city = ''">
+                  <option value="">—</option>
+                  @for (st of states; track st.n) { <option [value]="st.n">{{ t.hi() ? st.h : st.n }}</option> }
+                </select></div>
+              <div class="field"><label for="ect">{{ t.tx('City / district', 'शहर / ज़िला') }}</label>
+                <select id="ect" class="input" name="ecity" [(ngModel)]="city" [disabled]="!state">
+                  <option value="">—</option>
+                  @for (c of cities(); track c) { <option [value]="c">{{ c }}</option> }
+                </select></div>
+            </div>
           <button class="btn" type="submit" [disabled]="busy()">{{ t.tx('Save', 'सहेजें') }}</button>
         </form>
       </details>
@@ -186,10 +210,24 @@ export class AccountComponent {
   readonly ok = signal(false);
   readonly bookings = signal<Booking[]>([]);
   role: Role = 'user';
-  name = ''; phone = ''; city = ''; email = ''; password = '';
+  name = ''; phone = ''; city = ''; state = ''; email = ''; password = '';
+  readonly states = STATES;
+  digits(v: string) { return (v || '').replace(/\D/g, '').slice(0, 10); }
+  show(p: string | undefined) { return showMobile(p); }
+  /** Districts of the chosen state (plus an older free-text city, so it isn't lost). */
+  cities(): string[] {
+    const list = (STATES.find(x => x.n === this.state)?.d ?? []).map(d => d[0]);
+    return this.city && !list.includes(this.city) ? [this.city, ...list] : list;
+  }
+  placeText(city?: string, state?: string) {
+    const st = STATES.find(x => x.n === state);
+    return [city, st ? (this.t.hi() ? st.h : st.n) : state].filter(Boolean).join(', ');
+  }
   private stop?: () => void;
 
   constructor() {
+    const pl = inject(LocationService).place();
+    if (pl.state && STATES.some(x => x.n === pl.state)) { this.state = pl.state; this.city = pl.district ?? ''; }
     const q = this.route.snapshot.queryParamMap;
     if (q.get('role') === 'pandit') { this.role = 'pandit'; this.mode.set('up'); }
     if (q.get('mode') === 'up') this.mode.set('up');
@@ -200,7 +238,7 @@ export class AccountComponent {
     });
     effect(() => {
       const p = this.acc.profile();
-      if (p) { this.name = p.name; this.phone = p.phone; this.city = p.city; }
+      if (p) { this.name = p.name; this.phone = localMobile(p.phone); this.city = p.city; this.state = p.state ?? ''; }
     });
     inject(DestroyRef).onDestroy(() => this.stop?.());
   }
@@ -220,8 +258,9 @@ export class AccountComponent {
         await this.acc.resetPassword(this.email);
         this.say(this.t.tx('Reset link sent. Check your email (and spam folder).', 'रीसेट लिंक भेज दिया है। ईमेल (और स्पैम फ़ोल्डर) देखें।'), true);
       } else if (this.mode() === 'up') {
-        if (!this.name.trim() || this.phone.replace(/\D/g, '').length < 10) return this.say(this.t.tx('Please enter your name and a 10-digit mobile number.', 'नाम और 10 अंकों का मोबाइल नंबर लिखें।'));
-        await this.acc.signUp({ name: this.name, email: this.email, password: this.password, phone: this.phone, city: this.city, role: this.role });
+        if (!this.name.trim()) return this.say(this.t.tx('Please enter your name.', 'कृपया अपना नाम लिखें।'));
+        if (!validMobile(this.phone)) return this.say(this.t.tx('Please enter a valid 10-digit Indian mobile number.', 'कृपया सही 10 अंकों का मोबाइल नंबर लिखें।'));
+        await this.acc.signUp({ name: this.name, email: this.email, password: this.password, phone: intlMobile(this.phone), city: this.city, state: this.state, role: this.role });
         this.after();
       } else {
         await this.acc.signIn(this.email, this.password);
@@ -270,7 +309,8 @@ export class AccountComponent {
   }
   async saveProfile() {
     this.busy.set(true);
-    try { await this.acc.updateProfile({ name: this.name.trim(), phone: this.phone.trim(), city: this.city.trim() }); this.say(this.t.tx('Saved.', 'सहेज लिया।'), true); }
+    if (this.phone && !validMobile(this.phone)) { this.say(this.t.tx('Please enter a valid 10-digit Indian mobile number.', 'कृपया सही 10 अंकों का मोबाइल नंबर लिखें।')); this.busy.set(false); return; }
+    try { await this.acc.updateProfile({ name: this.name.trim(), phone: intlMobile(this.phone), city: this.city.trim(), state: this.state }); this.say(this.t.tx('Saved.', 'सहेज लिया।'), true); }
     catch (e) { this.say(this.acc.errorText(e, this.t.hi())); }
     finally { this.busy.set(false); }
   }
