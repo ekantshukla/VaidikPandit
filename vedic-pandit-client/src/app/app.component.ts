@@ -270,17 +270,28 @@ import { AccountService } from './core/services/account.service';
     @media (max-width: 1280px) { .bar { gap: 12px; } .desk { gap: 0; } .desk a { padding: 8px 8px; } }
     .prefs .lang { max-width: 104px; }
     @media (max-width: 1240px) { .get span { display: none; } .get { padding: 6px 10px; } }
-    /* Desktop and laptops (incl. 125–150% Windows scaling): two rows so nothing is ever pushed off-screen.
-       Row 1: logo · language/place · Dakshina/account/app. Row 2: the menu. */
+    /* Desktop: one row, using the full screen width so the header never runs off the right edge.
+       It gets more compact step by step on smaller laptops (incl. 125–150% Windows scaling),
+       and only below 1280px does the menu move to a second row. */
     @media (min-width: 1025px) {
-      .bar { flex-wrap: wrap; row-gap: 2px; padding-top: 8px; }
-      .brand { order: 0; }
-      .prefs { order: 1; margin-left: auto; }
-      .acts { order: 2; }
-      .desk { order: 3; flex: 1 1 100%; gap: 2px; padding-bottom: 8px; margin-left: -8px; }
-      .desk a { padding: 6px 12px; }
+      .top .bar { max-width: 1760px; }
     }
-    @media (min-width: 1025px) and (max-width: 1180px) { .dak span { display: none; } .dak { padding: 6px 10px; } }
+    @media (min-width: 1025px) and (max-width: 1600px) {
+      .get span { display: none; } .get { padding: 6px 10px; }
+      .bar { gap: 14px; }
+      .desk { gap: 0; } .desk a { padding: 8px 9px; }
+    }
+    @media (min-width: 1025px) and (max-width: 1440px) {
+      .dak span { display: none; } .dak { padding: 6px 10px; }
+      .brand .logo { width: 48px; height: 48px; } .mark { font-size: 1.5rem; }
+      .desk a { padding: 7px 7px; font-size: .95rem; }
+      .prefs { gap: 6px; } .prefs .lang { max-width: 96px; }
+    }
+    @media (min-width: 1025px) and (max-width: 1279px) {
+      .bar { flex-wrap: wrap; row-gap: 0; padding-top: 6px; }
+      .prefs { order: 1; margin-left: auto; } .acts { order: 2; }
+      .desk { order: 3; flex: 1 1 100%; padding-bottom: 6px; margin-left: -8px; }
+    }
 
     /* ---------- phones & small tablets ---------- */
     @media (max-width: 1024px) {
