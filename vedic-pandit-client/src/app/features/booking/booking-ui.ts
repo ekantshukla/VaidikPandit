@@ -1,5 +1,5 @@
 // Shared pieces for the account, Pandit booking and admin pages.
-import { Component, Input, computed, inject } from '@angular/core';
+import { Component, EventEmitter, Input, Output, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { I18nService } from '../../core/services/i18n.service';
 import { BookingStatus, PanditStatus } from '../../core/services/account.service';
@@ -67,27 +67,130 @@ export function fmtDate(iso: string, hi: boolean): string {
   return isNaN(+d) ? iso : d.toLocaleDateString(hi ? 'hi-IN' : 'en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-/** Indian mobile numbers: the form keeps 10 digits; the database keeps +91XXXXXXXXXX. */
-export function localMobile(stored: string | undefined): string {
-  const d = (stored || '').replace(/\D/g, '');
-  return d.length > 10 && d.startsWith('91') ? d.slice(-10) : d.length === 11 && d.startsWith('0') ? d.slice(1) : d.slice(0, 10);
+// ---------------- countries and phone numbers ----------------
+export interface Country { iso: string; en: string; hi: string; dial: string; min: number; max: number; }
+/** India first, then where Indian families most often live. */
+export const COUNTRIES: Country[] = [
+  { iso: 'IN', en: 'India', hi: 'भारत', dial: '91', min: 10, max: 10 },
+  { iso: 'NP', en: 'Nepal', hi: 'नेपाल', dial: '977', min: 10, max: 10 },
+  { iso: 'US', en: 'United States', hi: 'अमेरिका', dial: '1', min: 10, max: 10 },
+  { iso: 'CA', en: 'Canada', hi: 'कनाडा', dial: '1', min: 10, max: 10 },
+  { iso: 'GB', en: 'United Kingdom', hi: 'ब्रिटेन', dial: '44', min: 9, max: 10 },
+  { iso: 'AU', en: 'Australia', hi: 'ऑस्ट्रेलिया', dial: '61', min: 9, max: 9 },
+  { iso: 'NZ', en: 'New Zealand', hi: 'न्यूज़ीलैंड', dial: '64', min: 8, max: 10 },
+  { iso: 'AE', en: 'UAE', hi: 'संयुक्त अरब अमीरात', dial: '971', min: 9, max: 9 },
+  { iso: 'SA', en: 'Saudi Arabia', hi: 'सऊदी अरब', dial: '966', min: 9, max: 9 },
+  { iso: 'QA', en: 'Qatar', hi: 'क़तर', dial: '974', min: 8, max: 8 },
+  { iso: 'KW', en: 'Kuwait', hi: 'कुवैत', dial: '965', min: 8, max: 8 },
+  { iso: 'OM', en: 'Oman', hi: 'ओमान', dial: '968', min: 8, max: 8 },
+  { iso: 'BH', en: 'Bahrain', hi: 'बहरीन', dial: '973', min: 8, max: 8 },
+  { iso: 'SG', en: 'Singapore', hi: 'सिंगापुर', dial: '65', min: 8, max: 8 },
+  { iso: 'MY', en: 'Malaysia', hi: 'मलेशिया', dial: '60', min: 9, max: 10 },
+  { iso: 'HK', en: 'Hong Kong', hi: 'हांगकांग', dial: '852', min: 8, max: 8 },
+  { iso: 'JP', en: 'Japan', hi: 'जापान', dial: '81', min: 10, max: 10 },
+  { iso: 'LK', en: 'Sri Lanka', hi: 'श्रीलंका', dial: '94', min: 9, max: 9 },
+  { iso: 'BD', en: 'Bangladesh', hi: 'बांग्लादेश', dial: '880', min: 10, max: 10 },
+  { iso: 'BT', en: 'Bhutan', hi: 'भूटान', dial: '975', min: 8, max: 8 },
+  { iso: 'MU', en: 'Mauritius', hi: 'मॉरीशस', dial: '230', min: 8, max: 8 },
+  { iso: 'FJ', en: 'Fiji', hi: 'फ़िजी', dial: '679', min: 7, max: 7 },
+  { iso: 'ZA', en: 'South Africa', hi: 'दक्षिण अफ़्रीका', dial: '27', min: 9, max: 9 },
+  { iso: 'KE', en: 'Kenya', hi: 'केन्या', dial: '254', min: 9, max: 9 },
+  { iso: 'TT', en: 'Trinidad and Tobago', hi: 'त्रिनिदाद और टोबैगो', dial: '1868', min: 7, max: 7 },
+  { iso: 'GY', en: 'Guyana', hi: 'गयाना', dial: '592', min: 7, max: 7 },
+  { iso: 'SR', en: 'Suriname', hi: 'सूरीनाम', dial: '597', min: 6, max: 7 },
+  { iso: 'DE', en: 'Germany', hi: 'जर्मनी', dial: '49', min: 10, max: 11 },
+  { iso: 'NL', en: 'Netherlands', hi: 'नीदरलैंड', dial: '31', min: 9, max: 9 },
+  { iso: 'FR', en: 'France', hi: 'फ़्रांस', dial: '33', min: 9, max: 9 },
+  { iso: 'IT', en: 'Italy', hi: 'इटली', dial: '39', min: 9, max: 10 },
+  { iso: 'IE', en: 'Ireland', hi: 'आयरलैंड', dial: '353', min: 9, max: 9 },
+];
+export const countryOf = (iso: string | undefined) => COUNTRIES.find(c => c.iso === iso) ?? COUNTRIES[0];
+export const flagUrl = (iso: string) => `https://flagcdn.com/w40/${iso.toLowerCase()}.png`;
+
+/** "+9779812345678" → { iso: 'NP', num: '9812345678' }. Plain 10 digits (older entries) are Indian. */
+export function splitPhone(stored: string | undefined, hint?: string): { iso: string; num: string } {
+  const raw = (stored || '').trim();
+  const d = raw.replace(/\D/g, '');
+  if (!d) return { iso: hint && COUNTRIES.some(c => c.iso === hint) ? hint : 'IN', num: '' };
+  if (!raw.startsWith('+')) {
+    if (d.length === 12 && d.startsWith('91')) return { iso: 'IN', num: d.slice(2) };
+    if (d.length === 11 && d.startsWith('0')) return { iso: 'IN', num: d.slice(1) };
+    return { iso: hint ?? 'IN', num: d };
+  }
+  const byLen = [...COUNTRIES].sort((a, b) => b.dial.length - a.dial.length);
+  const hit = (hint && COUNTRIES.find(c => c.iso === hint && d.startsWith(c.dial))) || byLen.find(c => d.startsWith(c.dial));
+  return hit ? { iso: hit.iso, num: d.slice(hit.dial.length) } : { iso: 'IN', num: d };
 }
-export const intlMobile = (ten: string) => (ten ? '+91' + ten.replace(/\D/g, '') : '');
-export const validMobile = (ten: string) => /^[6-9]\d{9}$/.test((ten || '').replace(/\D/g, ''));
-/** "+91 77606 88931" for display. */
-export function showMobile(stored: string | undefined): string {
-  const d = localMobile(stored);
-  return d.length === 10 ? `+91 ${d.slice(0, 5)} ${d.slice(5)}` : (stored || '');
+export const joinPhone = (iso: string, num: string) => { const n = (num || '').replace(/\D/g, ''); return n ? `+${countryOf(iso).dial}${n}` : ''; };
+export function validPhone(stored: string): boolean {
+  const { iso, num } = splitPhone(stored);
+  const c = countryOf(iso);
+  return num.length >= c.min && num.length <= c.max && (iso !== 'IN' || /^[6-9]/.test(num));
+}
+/** "+91 77606 88931" / "+977 9812345678" for display. */
+export function showPhone(stored: string | undefined): string {
+  if (!stored) return '';
+  const { iso, num } = splitPhone(stored);
+  return iso === 'IN' && num.length === 10 ? `+91 ${num.slice(0, 5)} ${num.slice(5)}` : `+${countryOf(iso).dial} ${num}`;
 }
 
-/** Small Indian flag (drawn, because the 🇮🇳 emoji shows as "IN" on Windows). */
+/**
+ * Phone box with a country-code picker (flag + code). Two-way: [(value)] holds the full number, e.g. "+917760688931".
+ * Uses plain events (no ngModel) so it can sit inside any form.
+ */
 @Component({
-  selector: 'vp-in-flag',
+  selector: 'vp-phone',
   standalone: true,
-  template: `<svg viewBox="0 0 30 20" width="24" height="16" aria-hidden="true"><rect width="30" height="20" rx="2" fill="#fff"/><rect width="30" height="6.67" rx="2" fill="#FF9933"/><rect y="6.67" width="30" height="6.66" fill="#fff"/><rect y="13.33" width="30" height="6.67" rx="2" fill="#138808"/><circle cx="15" cy="10" r="2.6" fill="none" stroke="#000080" stroke-width=".7"/><circle cx="15" cy="10" r=".6" fill="#000080"/></svg>`,
-  styles: [`:host { display: inline-flex; } svg { border-radius: 2px; box-shadow: 0 0 0 1px rgba(0,0,0,.12); }`],
+  template: `
+    <div class="phone">
+      <label class="cc" [title]="t.tx('Country code', 'देश कोड')">
+        <img [src]="flag(iso())" alt="" width="24" height="16" (error)="$any($event.target).style.display = 'none'">
+        <span>+{{ dial() }}</span><span class="car" aria-hidden="true">▾</span>
+        <select [attr.aria-label]="t.tx('Country code', 'देश कोड')" (change)="setIso($any($event.target).value)">
+          @for (c of countries; track c.iso) { <option [value]="c.iso" [selected]="c.iso === iso()">{{ t.hi() ? c.hi : c.en }} (+{{ c.dial }})</option> }
+        </select>
+      </label>
+      <input [id]="inputId" type="tel" inputmode="numeric" [attr.maxlength]="max()" [value]="num()" [placeholder]="iso() === 'IN' ? '98765 43210' : ''"
+        autocomplete="tel-national" (input)="setNum($any($event.target))">
+    </div>`,
+  styles: [`
+    :host { display: block; }
+    .phone { display: flex; align-items: stretch; border: 1.5px solid var(--line); border-radius: var(--r-sm); background: var(--card); overflow: hidden; }
+    .phone:focus-within { border-color: var(--ink); }
+    .cc { position: relative; display: inline-flex; align-items: center; gap: 6px; padding: 0 10px; background: var(--paper); border-right: 1.5px solid var(--line);
+      font-weight: 600; color: var(--ink); font-size: 1rem; flex: none; cursor: pointer; }
+    .cc img { border-radius: 2px; box-shadow: 0 0 0 1px rgba(0,0,0,.12); object-fit: cover; }
+    .car { font-size: .7rem; color: var(--faint); }
+    .cc select { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; font-size: 16px; }
+    input { border: 0; outline: none; flex: 1; min-width: 0; padding: 10px 12px; min-height: 44px; font: inherit; background: transparent; letter-spacing: .04em; }
+  `],
 })
-export class InFlagComponent {}
+export class PhoneInputComponent {
+  readonly t = useTx();
+  readonly countries = COUNTRIES;
+  @Input() inputId = '';
+  @Output() valueChange = new EventEmitter<string>();
+  readonly iso = signal('IN');
+  readonly num = signal('');
+  readonly dial = computed(() => countryOf(this.iso()).dial);
+  readonly max = computed(() => countryOf(this.iso()).max);
+  private last = '';
+  @Input() set value(v: string | undefined) {
+    if ((v || '') === this.last) return;
+    const p = splitPhone(v, this.iso());
+    this.iso.set(p.iso); this.num.set(p.num); this.last = v || '';
+  }
+  /** Country to start with when the number is empty (e.g. the profile's country). */
+  @Input() set country(c: string | undefined) { if (c && !this.num() && COUNTRIES.some(x => x.iso === c)) this.iso.set(c); }
+  flag(iso: string) { return flagUrl(iso); }
+  setIso(iso: string) { this.iso.set(iso); this.emit(); }
+  setNum(el: HTMLInputElement) {
+    const d = el.value.replace(/\D/g, '').slice(0, this.max());
+    if (el.value !== d) el.value = d;
+    this.num.set(d); this.emit();
+  }
+  private emit() { this.last = joinPhone(this.iso(), this.num()); this.valueChange.emit(this.last); }
+}
 
 /** Shown on every booking page when the site owner has not connected Firebase yet. */
 @Component({
@@ -144,10 +247,5 @@ export const BOOKING_CSS = `
   .bk .who { min-width: 0; flex: 1; } .bk b { display: block; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .bk small { color: var(--muted); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .note { font-size: var(--s-1); color: var(--faint); }
-  .phone { display: flex; align-items: stretch; border: 1.5px solid var(--line); border-radius: var(--r-sm); background: var(--card); overflow: hidden; }
-  .phone:focus-within { border-color: var(--ink); }
-  .phone .cc { display: inline-flex; align-items: center; gap: 6px; padding: 0 10px; background: var(--paper); border-right: 1.5px solid var(--line);
-    font-weight: 600; color: var(--ink); flex: none; }
-  .phone input { border: 0; outline: none; flex: 1; min-width: 0; padding: 10px 12px; min-height: 44px; font: inherit; background: transparent; letter-spacing: .04em; }
   @media (max-width: 560px) { .row2 { grid-template-columns: minmax(0, 1fr); } .actions .btn { flex: 1 1 auto; } }
 `;

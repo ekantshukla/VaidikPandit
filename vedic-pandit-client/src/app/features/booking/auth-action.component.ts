@@ -4,7 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AccountService } from '../../core/services/account.service';
 import { useTx } from './booking-ui';
 
-type View = 'loading' | 'verify' | 'verified' | 'notme' | 'reset' | 'resetDone' | 'recover' | 'recovered' | 'error';
+type View = 'loading' | 'verify' | 'verified' | 'notme' | 'reset' | 'resetDone' | 'recover' | 'recovered' | 'changeEmail' | 'emailChanged' | 'error';
 
 /**
  * Landing page for the links in Firebase emails (set as the "action URL" in Authentication → Templates).
@@ -55,6 +55,22 @@ type View = 'loading' | 'verify' | 'verified' | 'notme' | 'reset' | 'resetDone' 
             <a class="btn ghost" routerLink="/">{{ t.tx('Go to Vaidik Pandit', 'वैदिक पंडित पर जाएँ') }}</a>
             <button type="button" class="btn link" (click)="view.set('verify')">← {{ t.tx('Actually, it was me', 'नहीं, यह मैंने ही किया था') }}</button>
           </div>
+        }
+
+        @case ('changeEmail') {
+          <h1>📧 {{ t.tx('Confirm your new email', 'नया ईमेल पक्का करें') }}</h1>
+          <p class="lead">{{ t.tx('Your Vaidik Pandit login email will change to:', 'आपके वैदिक पंडित खाते का ईमेल बदलकर यह होगा:') }}</p>
+          @if (email()) { <p class="email">{{ email() }}</p> }
+          <div class="btns">
+            <button type="button" class="btn ok" (click)="confirmEmail()" [disabled]="busy()">✅ {{ t.tx('Yes, change my email', 'हाँ, मेरा ईमेल बदलें') }}</button>
+            <button type="button" class="btn ghost" (click)="view.set('notme')" [disabled]="busy()">✋ {{ t.tx("This wasn't me", 'यह मैंने नहीं किया') }}</button>
+          </div>
+        }
+        @case ('emailChanged') {
+          <div class="diya" aria-hidden="true">🪔</div>
+          <h1>{{ t.tx('Email changed', 'ईमेल बदल गया') }}</h1>
+          <p class="lead">{{ t.tx('Please log in again with your new email address.', 'कृपया नए ईमेल पते से फिर लॉग इन करें।') }}</p>
+          <div class="btns"><a class="btn ok" routerLink="/account">{{ t.tx('Log in', 'लॉग इन करें') }}</a></div>
         }
 
         @case ('reset') {
@@ -154,6 +170,7 @@ export class AuthActionComponent {
     try {
       if (mode === 'verifyEmail') { this.email.set((await this.acc.actionInfo(this.code)).email); this.view.set('verify'); }
       else if (mode === 'resetPassword') { this.email.set(await this.acc.resetEmailFor(this.code)); this.view.set('reset'); }
+      else if (mode === 'verifyAndChangeEmail') { this.email.set((await this.acc.actionInfo(this.code)).email); this.view.set('changeEmail'); }
       else if (mode === 'recoverEmail') { this.email.set((await this.acc.actionInfo(this.code)).email); this.view.set('recover'); }
       else { this.err.set(this.t.tx('This link is not recognised.', 'यह लिंक पहचाना नहीं गया।')); this.view.set('error'); }
     } catch (e) { this.fail(e); }
@@ -164,6 +181,7 @@ export class AuthActionComponent {
     try { await f(); this.view.set(next); } catch (e) { this.fail(e); } finally { this.busy.set(false); }
   }
   verify() { return this.run(() => this.acc.applyAction(this.code), 'verified'); }
+  confirmEmail() { return this.run(async () => { await this.acc.applyAction(this.code); await this.acc.signOut().catch(() => undefined); }, 'emailChanged'); }
   recover() { return this.run(() => this.acc.applyAction(this.code), 'recovered'); }
   reset() {
     if (this.p1.length < 6) { this.err.set(this.t.tx('Password must be at least 6 characters.', 'पासवर्ड कम से कम 6 अक्षर का हो।')); return undefined; }
