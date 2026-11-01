@@ -2,7 +2,7 @@
 // The Firebase SDK is loaded from Google's CDN on first use, so the website and app stay small and the build needs
 // no extra packages. Data access is protected by firestore.rules (see PANDIT_BOOKING.md).
 import { Injectable, computed, signal } from '@angular/core';
-import { ADMIN_EMAILS, FIREBASE_CONFIG } from '../app-info';
+import { ADMIN_EMAILS, FIREBASE_CONFIG, WEBSITE_URL } from '../app-info';
 
 const SDK = 'https://www.gstatic.com/firebasejs/10.14.1/';
 // Keep the bundler from trying to resolve the CDN URLs
@@ -54,7 +54,21 @@ export class AccountService {
   private fb?: Promise<{ auth: any; db: any; A: any; F: any }>;
   private unsubPending?: () => void;
 
+  /** After verifying or resetting on Firebase's page, a "Continue" button brings the person back to their account here. */
+  private backLink() { return { url: WEBSITE_URL + '#/account' }; }
+  /** Verification email with the "Continue" link; falls back to the plain email if Firebase rejects the link. */
+  private sendVerify(A: any, user: any): Promise<void> {
+    return A.sendEmailVerification(user, this.backLink()).catch((e: any) => {
+      if (String(e?.code).includes('continue') || String(e?.code).includes('domain')) return A.sendEmailVerification(user);
+      throw e;
+    });
+  }
+
   constructor() {
+    // Coming back to the tab after clicking the email link: refresh "verified" without a manual reload
+    if (typeof window !== 'undefined') {
+      window.addEventListener('focus', () => { const u = this.user(); if (u && !u.verified) this.reloadUser().catch(() => undefined); });
+    }
     // The Firebase SDK (~300 kB) is fetched only for people who have signed in on this device, or when a booking page
     // needs it. Everyone else starts the app without it, which keeps start-up fast on low-memory (Android Go) phones.
     if (this.configured && hadAccount()) this.init().catch(() => this.user.set(null));
@@ -145,6 +159,8 @@ export class AccountService {
       ['configuration-not-found', 'Firebase Authentication is not set up for this project.', 'इस प्रोजेक्ट में Firebase Authentication चालू नहीं है।'],
       ['unauthorized-domain', 'This website address is not in Firebase Authorised domains.', 'यह वेबसाइट Firebase Authorised domains में नहीं है।'],
       ['not-found', 'The Firestore database was not found. Its ID must be (default).', 'Firestore डेटाबेस नहीं मिला। उसकी ID (default) होनी चाहिए।'],
+      ['expired-action-code', 'This link has expired. Please ask for a new one.', 'यह लिंक पुराना हो गया है। नया लिंक मँगवाएँ।'],
+      ['invalid-action-code', 'This link was already used or is not valid. Please ask for a new one.', 'यह लिंक पहले ही उपयोग हो चुका है या सही नहीं है। नया लिंक मँगवाएँ।'],
       ['failed to fetch', 'Could not load Firebase. Check your internet and try again.', 'Firebase लोड नहीं हुआ। इंटरनेट जाँचें।'],
     ];
     const hit = map.find(([k]) => c.includes(k));
@@ -161,15 +177,28 @@ export class AccountService {
     const profile = { name: d.name.trim(), email: d.email.trim(), phone: d.phone.trim(), city: d.city.trim(), role: d.role, createdAt: F.serverTimestamp() };
     await F.setDoc(F.doc(db, 'users', cred.user.uid), profile);
     this.profile.set({ uid: cred.user.uid, ...profile, createdAt: Date.now() } as Profile);
-    A.sendEmailVerification(cred.user).catch(() => undefined);
+    this.sendVerify(A, cred.user).catch(() => undefined);
   }
   async signIn(email: string, password: string) {
     const { auth, A } = await this.init();
     await A.signInWithEmailAndPassword(auth, email.trim(), password);
   }
   async signOut() { const { auth, A } = await this.init(); await A.signOut(auth); }
-  async resetPassword(email: string) { const { auth, A } = await this.init(); await A.sendPasswordResetEmail(auth, email.trim()); }
-  async resendVerification() { const { auth, A } = await this.init(); if (auth.currentUser) await A.sendEmailVerification(auth.currentUser); }
+  // Links from Firebase emails (handled on the #/auth-action page)
+  async actionInfo(code: string): Promise<{ email: string; operation: string }> {
+    const { auth, A } = await this.init();
+    const i = await A.checkActionCode(auth, code);
+    return { email: i?.data?.email ?? i?.data?.previousEmail ?? '', operation: i?.operation ?? '' };
+  }
+  async applyAction(code: string) {
+    const { auth, A } = await this.init();
+    await A.applyActionCode(auth, code);
+    if (auth.currentUser) await this.reloadUser().catch(() => undefined);
+  }
+  async resetEmailFor(code: string): Promise<string> { const { auth, A } = await this.init(); return A.verifyPasswordResetCode(auth, code); }
+  async confirmReset(code: string, password: string) { const { auth, A } = await this.init(); await A.confirmPasswordReset(auth, code, password); }
+  async resetPassword(email: string) { const { auth, A } = await this.init(); await A.sendPasswordResetEmail(auth, email.trim(), this.backLink()).catch((e: any) => { if (String(e?.code).includes('continue')) return A.sendPasswordResetEmail(auth, email.trim()); throw e; }); }
+  async resendVerification() { const { auth, A } = await this.init(); if (auth.currentUser) await this.sendVerify(A, auth.currentUser); }
   async reloadUser() {
     const { auth } = await this.init();
     await auth.currentUser?.reload();
