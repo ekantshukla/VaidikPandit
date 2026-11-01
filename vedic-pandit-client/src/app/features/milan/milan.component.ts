@@ -35,7 +35,7 @@ interface Side {
         <fieldset class="panel side" [class.g]="who === 'groom'" [class.b]="who === 'bride'">
           <legend>{{ who === 'groom' ? t.tx('🤵 Groom (Var)', '🤵 वर') : t.tx('👰 Bride (Vadhu)', '👰 वधू') }}</legend>
           <div class="field"><label [for]="who + '-n'">{{ t.tx('Name', 'नाम') }}</label>
-            <input class="input" [id]="who + '-n'" [name]="who + '-n'" [(ngModel)]="s.name" [placeholder]="t.tx('e.g. Rahul / राहुल', 'जैसे राहुल / Rahul')" autocomplete="off"></div>
+            <input class="input" [id]="who + '-n'" [name]="who + '-n'" [(ngModel)]="s.name" [placeholder]="who === 'groom' ? t.tx('e.g. Ram / राम', 'जैसे राम / Ram') : t.tx('e.g. Sita / सीता', 'जैसे सीता / Sita')" autocomplete="off"></div>
           <div class="seg" role="radiogroup">
             <button type="button" role="radio" [attr.aria-checked]="s.mode === 'birth'" [class.on]="s.mode === 'birth'" (click)="s.mode = 'birth'">📅 {{ t.tx('Birth details', 'जन्म विवरण') }}</button>
             <button type="button" role="radio" [attr.aria-checked]="s.mode === 'name'" [class.on]="s.mode === 'name'" (click)="s.mode = 'name'">🔤 {{ t.tx('Name only', 'केवल नाम') }}</button>
