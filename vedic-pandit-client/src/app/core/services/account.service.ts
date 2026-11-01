@@ -12,7 +12,7 @@ export type Role = 'user' | 'pandit';
 export type PanditStatus = 'pending' | 'approved' | 'rejected' | 'suspended';
 export type BookingStatus = 'requested' | 'accepted' | 'declined' | 'cancelled' | 'completed';
 
-export interface Profile { uid: string; name: string; email: string; phone: string; city: string; state?: string; role: Role; photo?: string; createdAt?: number; }
+export interface Profile { uid: string; name: string; email: string; phone: string; city: string; state?: string; country?: string; role: Role; photo?: string; createdAt?: number; }
 export interface Pandit {
   uid: string; name: string; photo: string; phone: string; whatsapp: string; state: string; city: string;
   languages: string[]; sampradaya: string; experience: number; pujas: string[]; fee: string; about: string;
@@ -102,7 +102,13 @@ export class AccountService {
   private async loadMine(uid: string) {
     const { db, F } = await this.init();
     const p = await F.getDoc(F.doc(db, 'users', uid));
-    if (p.exists()) this.profile.set({ uid, ...p.data(), createdAt: ts(p.data().createdAt) } as Profile);
+    if (p.exists()) {
+      this.profile.set({ uid, ...p.data(), createdAt: ts(p.data().createdAt) } as Profile);
+      // After a verified email change, keep the profile's copy of the email in step with the login
+      const { auth } = await this.init();
+      const now = auth.currentUser?.email;
+      if (now && p.data().email !== now) F.updateDoc(F.doc(db, 'users', uid), { email: now }).then(() => this.profile.update(x => (x ? { ...x, email: now } : x))).catch(() => undefined);
+    }
     else {
       // The login exists but its profile was never saved (e.g. the database wasn't ready at sign-up): create a basic one
       const { auth } = await this.init();
@@ -147,6 +153,8 @@ export class AccountService {
     const map: [string, string, string][] = [
       ['invalid-credential', 'Wrong email or password.', 'ईमेल या पासवर्ड ग़लत है।'],
       ['wrong-password', 'Wrong email or password.', 'ईमेल या पासवर्ड ग़लत है।'],
+      ['missing-password', 'Please enter your password.', 'कृपया पासवर्ड लिखें।'],
+      ['requires-recent-login', 'Please log out and log in again, then try.', 'कृपया लॉग आउट करके फिर लॉग इन करें, फिर प्रयास करें।'],
       ['user-not-found', 'No account with this email.', 'इस ईमेल से कोई खाता नहीं है।'],
       ['email-already-in-use', 'An account with this email already exists. Please log in.', 'इस ईमेल से खाता पहले से है। कृपया लॉग इन करें।'],
       ['weak-password', 'Password must be at least 6 characters.', 'पासवर्ड कम से कम 6 अक्षर का हो।'],
@@ -170,11 +178,11 @@ export class AccountService {
   }
 
   // ---------------- auth ----------------
-  async signUp(d: { name: string; email: string; password: string; phone: string; city: string; state?: string; role: Role }) {
+  async signUp(d: { name: string; email: string; password: string; phone: string; city: string; state?: string; country?: string; role: Role }) {
     const { auth, db, A, F } = await this.init();
     const cred = await A.createUserWithEmailAndPassword(auth, d.email.trim(), d.password);
     await A.updateProfile(cred.user, { displayName: d.name.trim() }).catch(() => undefined);
-    const profile = { name: d.name.trim(), email: d.email.trim(), phone: d.phone.trim(), city: d.city.trim(), state: (d.state ?? '').trim(), role: d.role, createdAt: F.serverTimestamp() };
+    const profile = { name: d.name.trim(), email: d.email.trim(), phone: d.phone.trim(), city: d.city.trim(), state: (d.state ?? '').trim(), country: d.country || 'IN', role: d.role, createdAt: F.serverTimestamp() };
     await F.setDoc(F.doc(db, 'users', cred.user.uid), profile);
     this.profile.set({ uid: cred.user.uid, ...profile, createdAt: Date.now() } as Profile);
     this.sendVerify(A, cred.user).catch(() => undefined);
@@ -198,6 +206,19 @@ export class AccountService {
   async resetEmailFor(code: string): Promise<string> { const { auth, A } = await this.init(); return A.verifyPasswordResetCode(auth, code); }
   async confirmReset(code: string, password: string) { const { auth, A } = await this.init(); await A.confirmPasswordReset(auth, code, password); }
   async resetPassword(email: string) { const { auth, A } = await this.init(); await A.sendPasswordResetEmail(auth, email.trim(), this.backLink()).catch((e: any) => { if (String(e?.code).includes('continue')) return A.sendPasswordResetEmail(auth, email.trim()); throw e; }); }
+  /**
+   * Change the login email: confirms the current password, then emails a link to the NEW address.
+   * The email changes only when that link is clicked (Firebase then asks the person to log in again).
+   */
+  async changeEmail(newEmail: string, password: string) {
+    const { auth, A } = await this.init();
+    const u = auth.currentUser; if (!u || !u.email) throw new Error('not signed in');
+    await A.reauthenticateWithCredential(u, A.EmailAuthProvider.credential(u.email, password));
+    await A.verifyBeforeUpdateEmail(u, newEmail.trim(), this.backLink()).catch((e: any) => {
+      if (String(e?.code).includes('continue')) return A.verifyBeforeUpdateEmail(u, newEmail.trim());
+      throw e;
+    });
+  }
   async resendVerification() { const { auth, A } = await this.init(); if (auth.currentUser) await this.sendVerify(A, auth.currentUser); }
   async reloadUser() {
     const { auth } = await this.init();
@@ -205,7 +226,7 @@ export class AccountService {
     const u = auth.currentUser;
     if (u) this.user.set({ uid: u.uid, email: u.email ?? '', verified: !!u.emailVerified });
   }
-  async updateProfile(d: Partial<Pick<Profile, 'name' | 'phone' | 'city' | 'state' | 'role' | 'photo'>>) {
+  async updateProfile(d: Partial<Pick<Profile, 'name' | 'phone' | 'city' | 'state' | 'country' | 'role' | 'photo'>>) {
     const { db, F } = await this.init();
     const u = this.user(); if (!u) throw new Error('not signed in');
     await F.updateDoc(F.doc(db, 'users', u.uid), d);
