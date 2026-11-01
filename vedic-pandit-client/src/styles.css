@@ -130,3 +130,4 @@ input[type="date"].input { -webkit-appearance: none; appearance: none; min-width
 /* Lite mode for low-memory phones (Android Go): set by a script in index.html. Same look, no motion or heavy shadows. */
 .lite *, .lite *::before, .lite *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 .lite .tabbar, .lite .bot-fab .ring, .lite .fab-label, .lite .sheet, .lite .botwin, .lite .rf-btn { box-shadow: none !important; }
+.lite .tick span { padding-left: 0 !important; }
