@@ -1,0 +1,26 @@
+import { Routes } from '@angular/router';
+
+export const routes: Routes = [
+  { path: '', loadComponent: () => import('./features/home/home.component').then(m => m.HomeComponent), title: 'Vaidik Pandit' },
+  { path: 'panchang', loadComponent: () => import('./features/panchang/panchang.component').then(m => m.PanchangPageComponent), title: 'Panchang — Vaidik Pandit' },
+  { path: 'muhurat', loadComponent: () => import('./features/muhurat/muhurat.component').then(m => m.MuhuratPageComponent), title: 'Muhurat — Vaidik Pandit' },
+  { path: 'mantra', loadComponent: () => import('./features/mantra/mantra.component').then(m => m.MantraPageComponent), title: 'Mantra — Vaidik Pandit' },
+  { path: 'mantra/:slug', loadComponent: () => import('./features/mantra/mantra.component').then(m => m.MantraPageComponent), title: 'Mantra — Vaidik Pandit' },
+  { path: 'granth', loadComponent: () => import('./features/granth/granth-home.component').then(m => m.GranthHomeComponent), title: 'Granth library — Vaidik Pandit' },
+  { path: 'granth/t/:code', loadComponent: () => import('./features/granth/granth.component').then(m => m.GranthPageComponent), title: 'Gita & Upanishads — Vaidik Pandit' },
+  { path: 'granth/:code', loadComponent: () => import('./features/granth/granth-reader.component').then(m => m.GranthReaderComponent), title: 'Granth — Vaidik Pandit' },
+  { path: 'learn/:deity', loadComponent: () => import('./features/learn/deity.component').then(m => m.DeityComponent), title: 'Mantra, Stotra, Chalisa, Aarti — Vaidik Pandit' },
+  { path: 'learn', loadComponent: () => import('./features/learn/learn.component').then(m => m.LearnComponent), title: 'Learn mantras — Vaidik Pandit' },
+  { path: 'samagri', loadComponent: () => import('./features/samagri/samagri.component').then(m => m.SamagriComponent), title: 'Puja samagri — Vaidik Pandit' },
+  { path: 'rashifal', loadComponent: () => import('./features/rashifal/rashifal.component').then(m => m.RashifalComponent), title: 'Rashifal — Vaidik Pandit' },
+  { path: 'ask', loadComponent: () => import('./features/chat/chat.component').then(m => m.ChatPageComponent), title: 'Ask AI PanditJi — Vaidik Pandit' },
+  { path: 'dakshina', loadComponent: () => import('./features/dakshina/dakshina.component').then(m => m.DakshinaComponent), title: 'Dakshina — Vaidik Pandit' },
+  { path: 'pandits', loadComponent: () => import('./features/booking/pandits.component').then(m => m.PanditsComponent), title: 'Book a Pandit — Vaidik Pandit' },
+  { path: 'pandits/:id', loadComponent: () => import('./features/booking/pandit-profile.component').then(m => m.PanditProfileComponent), title: 'Pandit — Vaidik Pandit' },
+  { path: 'booking/:id', loadComponent: () => import('./features/booking/booking.component').then(m => m.BookingComponent), title: 'Booking — Vaidik Pandit' },
+  { path: 'pandit', loadComponent: () => import('./features/booking/pandit-dashboard.component').then(m => m.PanditDashboardComponent), title: 'For Pandits — Vaidik Pandit' },
+  { path: 'auth-action', loadComponent: () => import('./features/booking/auth-action.component').then(m => m.AuthActionComponent), title: 'Vaidik Pandit' },
+  { path: 'account', loadComponent: () => import('./features/booking/account.component').then(m => m.AccountComponent), title: 'My account — Vaidik Pandit' },
+  { path: 'admin', loadComponent: () => import('./features/booking/admin.component').then(m => m.AdminComponent), title: 'Admin — Vaidik Pandit' },
+  { path: '**', redirectTo: '' },
+];
