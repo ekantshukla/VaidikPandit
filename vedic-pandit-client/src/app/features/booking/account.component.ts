@@ -52,12 +52,24 @@ import { BOOKING_CSS, BookingOffComponent, FaceComponent, PUJAS, bookingStatusTe
     } @else {
       @let p = acc.profile();
       <section class="me panel">
-        <label class="pic" [title]="t.tx('Change photo', 'फ़ोटो बदलें')">
-          <vp-face [name]="p?.name ?? ''" [photo]="p?.photo || acc.myPandit()?.photo" [size]="72" />
-          <span class="cam" aria-hidden="true">📷</span>
-          <input type="file" accept="image/*" (change)="pickPhoto($event)" hidden>
-          <span class="sr-only">{{ t.tx('Change photo', 'फ़ोटो बदलें') }}</span>
-        </label>
+        <div class="picbox">
+          <label class="pic" [class.new]="draft()" [title]="t.tx('Change photo', 'फ़ोटो बदलें')">
+            <vp-face [name]="p?.name ?? ''" [photo]="draft() || p?.photo || acc.myPandit()?.photo" [size]="72" />
+            <span class="cam" aria-hidden="true">📷</span>
+            <input type="file" accept="image/*" (change)="pickPhoto($event)" hidden>
+            <span class="sr-only">{{ t.tx('Change photo', 'फ़ोटो बदलें') }}</span>
+          </label>
+          @if (draft()) {
+            <span class="picacts">
+              <button type="button" class="mini ok" (click)="savePhoto()" [disabled]="busy()">✔ {{ t.tx('Save', 'सहेजें') }}</button>
+              <button type="button" class="mini" (click)="draft.set('')" [disabled]="busy()">✕ {{ t.tx('Cancel', 'रद्द') }}</button>
+            </span>
+          } @else if (p?.photo) {
+            <button type="button" class="mini del" (click)="removePhoto()" [disabled]="busy()">🗑 {{ t.tx('Remove', 'हटाएँ') }}</button>
+          } @else {
+            <span class="pichint">{{ t.tx('Tap 📷 to add a photo', 'फ़ोटो लगाने के लिए 📷 दबाएँ') }}</span>
+          }
+        </div>
         <div class="who">
           <h1>{{ p?.name || acc.user()?.email }}</h1>
           <p class="muted">{{ acc.user()?.email }}@if (p?.phone) { · {{ p?.phone }} }@if (p?.city) { · {{ p?.city }} }</p>
@@ -133,7 +145,16 @@ import { BOOKING_CSS, BookingOffComponent, FaceComponent, PUJAS, bookingStatusTe
     .role.on { border-color: var(--sindoor); background: var(--sindoor-soft); }
     .link { border: 0; background: none; color: var(--sindoor); font: inherit; font-weight: 600; cursor: pointer; justify-self: start; padding: 0; }
     .me { display: flex; gap: 14px; align-items: center; }
-    .pic { position: relative; cursor: pointer; flex: none; display: inline-flex; }
+    .picbox { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: none; width: 96px; }
+    .pic { position: relative; cursor: pointer; flex: none; display: inline-flex; border-radius: 50%; }
+    .pic.new { box-shadow: 0 0 0 3px var(--tulsi); }
+    .picacts { display: flex; gap: 4px; }
+    .mini { border: 1.5px solid var(--line); background: var(--card); color: var(--ink); border-radius: 999px; padding: 3px 9px; font: inherit;
+      font-size: .76rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .mini.ok { background: var(--tulsi); border-color: var(--tulsi); color: #fff; }
+    .mini.del { color: var(--sindoor); }
+    .mini:disabled { opacity: .5; }
+    .pichint { font-size: .7rem; color: var(--faint); text-align: center; line-height: 1.2; }
     .cam { position: absolute; right: -2px; bottom: -2px; width: 28px; height: 28px; border-radius: 50%; background: var(--card);
       border: 2px solid var(--haldi); display: grid; place-items: center; font-size: .85rem; box-shadow: 0 2px 6px rgba(0,0,0,.15); }
     .pic:hover .cam { background: var(--haldi-soft); }
@@ -221,17 +242,30 @@ export class AccountComponent {
     try { await this.acc.resendVerification(); this.say(this.t.tx('Verification email sent.', 'सत्यापन ईमेल भेज दिया।'), true); }
     catch (e) { this.say(this.acc.errorText(e, this.t.hi())); }
   }
+  /** A chosen photo is only a preview (draft) until Save is pressed. */
+  readonly draft = signal('');
   async pickPhoto(e: Event) {
     const input = e.target as HTMLInputElement;
     const file = input.files?.[0];
     input.value = '';
     if (!file) return;
+    try { this.draft.set(await photoToDataUrl(file)); this.say(''); }
+    catch { this.say(this.t.tx('Could not read that photo. Please choose another.', 'यह फ़ोटो नहीं खुल सकी। कोई दूसरी चुनें।')); }
+  }
+  async savePhoto() {
+    const photo = this.draft(); if (!photo) return;
     this.busy.set(true);
-    try {
-      const photo = await photoToDataUrl(file);
-      await this.acc.updateProfile({ photo });
-      this.say(this.t.tx('Photo updated.', 'फ़ोटो बदल गई।'), true);
-    } catch (err) { this.say(this.acc.errorText(err, this.t.hi())); }
+    try { await this.acc.updateProfile({ photo }); this.draft.set(''); this.say(this.t.tx('Photo saved.', 'फ़ोटो सहेज ली गई।'), true); }
+    catch (err) { this.say(this.acc.errorText(err, this.t.hi())); }
+    finally { this.busy.set(false); }
+  }
+  async removePhoto() {
+    let ok = true;
+    try { ok = window.confirm(this.t.tx('Remove your profile photo?', 'प्रोफ़ाइल फ़ोटो हटाएँ?')); } catch { /* no dialogs */ }
+    if (!ok) return;
+    this.busy.set(true);
+    try { await this.acc.updateProfile({ photo: '' }); this.say(this.t.tx('Photo removed.', 'फ़ोटो हटा दी गई।'), true); }
+    catch (err) { this.say(this.acc.errorText(err, this.t.hi())); }
     finally { this.busy.set(false); }
   }
   async saveProfile() {
