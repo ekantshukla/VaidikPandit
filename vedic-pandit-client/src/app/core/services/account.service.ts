@@ -12,7 +12,7 @@ export type Role = 'user' | 'pandit';
 export type PanditStatus = 'pending' | 'approved' | 'rejected' | 'suspended';
 export type BookingStatus = 'requested' | 'accepted' | 'declined' | 'cancelled' | 'completed';
 
-export interface Profile { uid: string; name: string; email: string; phone: string; city: string; role: Role; createdAt?: number; }
+export interface Profile { uid: string; name: string; email: string; phone: string; city: string; role: Role; photo?: string; createdAt?: number; }
 export interface Pandit {
   uid: string; name: string; photo: string; phone: string; whatsapp: string; state: string; city: string;
   languages: string[]; sampradaya: string; experience: number; pujas: string[]; fee: string; about: string;
@@ -205,7 +205,7 @@ export class AccountService {
     const u = auth.currentUser;
     if (u) this.user.set({ uid: u.uid, email: u.email ?? '', verified: !!u.emailVerified });
   }
-  async updateProfile(d: Partial<Pick<Profile, 'name' | 'phone' | 'city' | 'role'>>) {
+  async updateProfile(d: Partial<Pick<Profile, 'name' | 'phone' | 'city' | 'role' | 'photo'>>) {
     const { db, F } = await this.init();
     const u = this.user(); if (!u) throw new Error('not signed in');
     await F.updateDoc(F.doc(db, 'users', u.uid), d);
