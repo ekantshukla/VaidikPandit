@@ -270,7 +270,6 @@ import { AccountService } from './core/services/account.service';
 
     @media (max-width: 1280px) { .bar { gap: 12px; } .desk { gap: 0; } .desk a { padding: 8px 8px; } }
     .prefs .lang { max-width: 104px; }
-    @media (max-width: 1240px) { .get span { display: none; } .get { padding: 6px 10px; } }
     /* Desktop: one row, using the full screen width so the header never runs off the right edge.
        It gets more compact step by step on smaller laptops (incl. 125–150% Windows scaling),
        and only below 1280px does the menu move to a second row. */
@@ -278,7 +277,6 @@ import { AccountService } from './core/services/account.service';
       .top .bar { max-width: 1760px; }
     }
     @media (min-width: 1025px) and (max-width: 1600px) {
-      .get span { display: none; } .get { padding: 6px 10px; }
       .bar { gap: 14px; }
       .desk { gap: 0; } .desk a { padding: 8px 9px; }
     }
