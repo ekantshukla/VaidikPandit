@@ -1,7 +1,7 @@
 import { Component, DestroyRef, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { AccountService, Booking, Role } from '../../core/services/account.service';
+import { AccountService, Booking, Role, photoToDataUrl } from '../../core/services/account.service';
 import { BOOKING_CSS, BookingOffComponent, FaceComponent, PUJAS, bookingStatusText, fmtDate, panditStatusText, useTx } from './booking-ui';
 
 /** Log in / sign up (devotee or Pandit), then the profile and "My bookings". */
@@ -52,7 +52,12 @@ import { BOOKING_CSS, BookingOffComponent, FaceComponent, PUJAS, bookingStatusTe
     } @else {
       @let p = acc.profile();
       <section class="me panel">
-        <vp-face [name]="p?.name ?? ''" [photo]="acc.myPandit()?.photo" [size]="64" />
+        <label class="pic" [title]="t.tx('Change photo', 'फ़ोटो बदलें')">
+          <vp-face [name]="p?.name ?? ''" [photo]="p?.photo || acc.myPandit()?.photo" [size]="72" />
+          <span class="cam" aria-hidden="true">📷</span>
+          <input type="file" accept="image/*" (change)="pickPhoto($event)" hidden>
+          <span class="sr-only">{{ t.tx('Change photo', 'फ़ोटो बदलें') }}</span>
+        </label>
         <div class="who">
           <h1>{{ p?.name || acc.user()?.email }}</h1>
           <p class="muted">{{ acc.user()?.email }}@if (p?.phone) { · {{ p?.phone }} }@if (p?.city) { · {{ p?.city }} }</p>
@@ -128,6 +133,10 @@ import { BOOKING_CSS, BookingOffComponent, FaceComponent, PUJAS, bookingStatusTe
     .role.on { border-color: var(--sindoor); background: var(--sindoor-soft); }
     .link { border: 0; background: none; color: var(--sindoor); font: inherit; font-weight: 600; cursor: pointer; justify-self: start; padding: 0; }
     .me { display: flex; gap: 14px; align-items: center; }
+    .pic { position: relative; cursor: pointer; flex: none; display: inline-flex; }
+    .cam { position: absolute; right: -2px; bottom: -2px; width: 28px; height: 28px; border-radius: 50%; background: var(--card);
+      border: 2px solid var(--haldi); display: grid; place-items: center; font-size: .85rem; box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+    .pic:hover .cam { background: var(--haldi-soft); }
     .me .who { min-width: 0; } .me h1 { font-size: var(--s2); overflow-wrap: anywhere; }
     .me p { margin: 0; overflow-wrap: anywhere; } .tags { margin-top: 6px !important; display: flex; gap: 6px; }
     .verify { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-top: 12px; padding: 12px 14px;
@@ -211,6 +220,19 @@ export class AccountComponent {
   async resend() {
     try { await this.acc.resendVerification(); this.say(this.t.tx('Verification email sent.', 'सत्यापन ईमेल भेज दिया।'), true); }
     catch (e) { this.say(this.acc.errorText(e, this.t.hi())); }
+  }
+  async pickPhoto(e: Event) {
+    const input = e.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    this.busy.set(true);
+    try {
+      const photo = await photoToDataUrl(file);
+      await this.acc.updateProfile({ photo });
+      this.say(this.t.tx('Photo updated.', 'फ़ोटो बदल गई।'), true);
+    } catch (err) { this.say(this.acc.errorText(err, this.t.hi())); }
+    finally { this.busy.set(false); }
   }
   async saveProfile() {
     this.busy.set(true);
