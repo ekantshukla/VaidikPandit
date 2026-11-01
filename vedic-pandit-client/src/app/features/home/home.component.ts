@@ -1,3 +1,4 @@
+import { AccountService } from '../../core/services/account.service';
 import { Component, effect, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -55,6 +56,13 @@ interface Upcoming { date: string; names: string[]; }
           <span><b>{{ i18n.t('rfHomeBtn') }}</b><small>{{ i18n.t('rfHomeSub') }}</small></span>
           <span aria-hidden="true" class="rf-go">→</span>
         </a>
+        @if (acc.configured) {
+          <a routerLink="/pandits" class="rf-btn bk">
+            <span class="rf-sym" aria-hidden="true">🕉️</span>
+            <span><b>{{ i18n.t('bookTitle') }}</b><small>{{ i18n.t('bookSub') }}</small></span>
+            <span aria-hidden="true" class="rf-go">→</span>
+          </a>
+        }
         <div class="ex">
           @for (k of ['ex1', 'ex2', 'ex3']; track k) { <button type="button" (click)="q = i18n.t(k); ask()">{{ i18n.t(k) }}</button> }
         </div>
@@ -81,6 +89,7 @@ interface Upcoming { date: string; names: string[]; }
         <a routerLink="/muhurat"><b>{{ i18n.t('muhuratTitle') }}</b><span>{{ i18n.t('muhuratIntro') }}</span></a>
         <a routerLink="/mantra"><b>{{ i18n.t('mantraTitle') }}</b><span>{{ i18n.t('mantraIntro') }}</span></a>
         <a routerLink="/granth"><b>{{ i18n.t('granthTitle') }}</b><span>{{ i18n.t('libIntro') }}</span></a>
+        @if (acc.configured) { <a routerLink="/pandits"><b>{{ i18n.t('bookTitle') }}</b><span>{{ i18n.t('bookSub') }}</span></a> }
       </nav>
     </aside>
   </section>`,
@@ -110,6 +119,8 @@ interface Upcoming { date: string; names: string[]; }
     .rf-btn { display: flex; align-items: center; gap: 14px; margin-top: 14px; padding: 12px 18px; border-radius: 16px; text-decoration: none;
       background: linear-gradient(135deg, var(--haldi), #F0B53A); color: var(--ink); box-shadow: 0 10px 26px rgba(0,0,0,.18); }
     .rf-btn:hover { filter: brightness(1.05); }
+    .rf-btn.bk { background: rgba(255,255,255,.07); color: #fff; border: 1.5px solid rgba(227,162,26,.6); margin-top: 10px; }
+    .rf-btn.bk small { color: rgba(246,244,250,.75); }
     .rf-btn b { display: block; font-size: 1.12rem; }
     .rf-btn small { display: block; font-size: .85rem; color: rgba(29,23,54,.78); }
     .rf-sym { font-size: 1.4rem; letter-spacing: 2px; color: var(--sindoor); font-family: 'Segoe UI Symbol', 'Noto Sans Symbols', system-ui, sans-serif; flex: none; }
@@ -127,6 +138,9 @@ interface Upcoming { date: string; names: string[]; }
     .paths b { color: var(--sindoor); font-size: var(--s1); }
     .paths span { color: var(--muted); }
     @media (max-width: 900px) {
+      .hero { padding-top: 10px; }
+      .today { padding-top: 0; }
+      .today .date { margin-top: 0; }
       .grid, .body { grid-template-columns: 1fr; gap: 24px; }
       .dial { width: 100%; }
     }
@@ -138,6 +152,7 @@ export class HomeComponent {
   private api = inject(ApiService);
   private bot = inject(PanditJiService);
   private router = inject(Router);
+  readonly acc = inject(AccountService);
 
   readonly p = signal<PanchangResult | null>(null);
   readonly today = signal(todayIn(this.loc.place().tz));

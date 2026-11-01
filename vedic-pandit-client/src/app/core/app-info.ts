@@ -23,6 +23,15 @@ export const AI_KEY: string = '';
 export const AI_BASE_URL: string = 'https://generativelanguage.googleapis.com/v1beta/openai';
 export const AI_MODEL: string = 'gemini-3.1-flash-lite';
 
+/**
+ * Accounts, Pandit booking and verification (see PANDIT_BOOKING.md). The web config of your Firebase project as JSON,
+ * filled in by the workflows from the repository variable FIREBASE_CONFIG. It is public by design: the Firestore
+ * security rules protect the data. Empty = the booking pages say booking is not set up yet.
+ */
+export const FIREBASE_CONFIG: string = '';
+/** Emails (comma separated) that see the Admin page. The same emails must be in firestore.rules. Variable ADMIN_EMAILS. */
+export const ADMIN_EMAILS: string = '';
+
 const [owner, repo] = GITHUB_REPO.split('/');
 /** The live website (GitHub Pages). */
 export const WEBSITE_URL = `https://${owner.toLowerCase()}.github.io/${repo}/`;

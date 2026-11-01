@@ -1,0 +1,90 @@
+rules_version = '2';
+
+// Security rules for Vedic Pandit accounts and Pandit booking (see PANDIT_BOOKING.md).
+// Paste this whole file into Firebase console > Firestore Database > Rules, then Publish.
+// IMPORTANT: put your own admin email(s) in isAdmin() below, in lower case. They must match the ADMIN_EMAILS variable.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function me() { return request.auth.uid; }
+    function isAdmin() {
+      return signedIn() && request.auth.token.email_verified == true
+        && request.auth.token.email.lower() in ['your-admin-email@gmail.com'];
+    }
+    function changes() { return request.resource.data.diff(resource.data).affectedKeys(); }
+    function okText(v, max) { return v is string && v.size() <= max; }
+
+    // Devotee / Pandit account: only the person (and the admin) can see it, because it holds their phone number.
+    match /users/{uid} {
+      allow read: if signedIn() && (me() == uid || isAdmin());
+      allow create, update: if signedIn() && me() == uid
+        && request.resource.data.role in ['user', 'pandit']
+        && okText(request.resource.data.name, 80) && okText(request.resource.data.phone, 20);
+      allow delete: if false;
+    }
+
+    // Public Pandit profile. Everyone sees approved Pandits; the Pandit sees his own; the admin sees all.
+    match /pandits/{uid} {
+      allow read: if resource.data.status == 'approved' || (signedIn() && me() == uid) || isAdmin();
+      allow create: if signedIn() && me() == uid
+        && request.resource.data.status == 'pending'
+        && !('approvedAt' in request.resource.data) && !('rejectReason' in request.resource.data)
+        && okText(request.resource.data.name, 80) && okText(request.resource.data.about, 1500)
+        && okText(request.resource.data.photo, 200000);
+      // The Pandit edits his profile but cannot approve himself: status may only stay the same,
+      // or go back to 'pending' (re-apply after rejection, or after changing name/photo).
+      allow update: if isAdmin() || (signedIn() && me() == uid
+        && !changes().hasAny(['approvedAt', 'rejectReason', 'createdAt'])
+        && (request.resource.data.status == resource.data.status
+            || (request.resource.data.status == 'pending' && resource.data.status in ['rejected', 'approved']))
+        && okText(request.resource.data.name, 80) && okText(request.resource.data.about, 1500)
+        && okText(request.resource.data.photo, 200000));
+      allow delete: if isAdmin() || (signedIn() && me() == uid);
+    }
+
+    // The Pandit's phone numbers: only he and the admin can read them. They reach a devotee only when he accepts a booking.
+    match /panditPrivate/{uid} {
+      allow read: if signedIn() && (me() == uid || isAdmin());
+      allow write: if signedIn() && me() == uid
+        && okText(request.resource.data.phone, 20) && okText(request.resource.data.whatsapp, 20);
+    }
+
+    // Bookings are visible only to the devotee, the Pandit and the admin.
+    match /bookings/{id} {
+      function isUser() { return signedIn() && resource.data.userId == me(); }
+      function isPandit() { return signedIn() && resource.data.panditId == me(); }
+
+      allow read: if isUser() || isPandit() || isAdmin();
+      allow create: if signedIn() && request.resource.data.userId == me()
+        && request.resource.data.status == 'requested'
+        && request.resource.data.panditId != me()
+        && get(/databases/$(database)/documents/pandits/$(request.resource.data.panditId)).data.status == 'approved'
+        && !('panditPhone' in request.resource.data) && !('panditWhatsapp' in request.resource.data)
+        && okText(request.resource.data.notes, 2000) && okText(request.resource.data.address, 500);
+      allow update: if
+        // Pandit: accept (shares his phone) or decline a request; complete or cancel a confirmed booking
+        (isPandit()
+          && changes().hasOnly(['status', 'panditPhone', 'panditWhatsapp', 'declineReason', 'updatedAt'])
+          && ((resource.data.status == 'requested' && request.resource.data.status in ['accepted', 'declined'])
+              || (resource.data.status == 'accepted' && request.resource.data.status in ['completed', 'cancelled'])))
+        // Devotee: cancel a request or a confirmed booking
+        || (isUser()
+          && changes().hasOnly(['status', 'updatedAt'])
+          && resource.data.status in ['requested', 'accepted'] && request.resource.data.status == 'cancelled')
+        || isAdmin();
+      allow delete: if isAdmin();
+
+      // In-app chat between the devotee and the Pandit
+      match /messages/{mid} {
+        function booking() { return get(/databases/$(database)/documents/bookings/$(id)).data; }
+        function party() { return signedIn() && (booking().userId == me() || booking().panditId == me()); }
+        allow read: if party() || isAdmin();
+        allow create: if party() && request.resource.data.from == me()
+          && booking().status in ['requested', 'accepted']
+          && okText(request.resource.data.text, 1000) && request.resource.data.text.size() > 0;
+        allow update, delete: if false;
+      }
+    }
+  }
+}

@@ -8,6 +8,7 @@ import { ChatPanelComponent } from './shared/chat-panel.component';
 import { GetAppComponent } from './shared/get-app.component';
 import { NativeService } from './core/services/native.service';
 import { BotAvatarComponent } from './shared/bot-avatar.component';
+import { AccountService } from './core/services/account.service';
 
 @Component({
   selector: 'app-root',
@@ -18,7 +19,7 @@ import { BotAvatarComponent } from './shared/bot-avatar.component';
   <header class="top">
     <div class="wrap bar">
       <a routerLink="/" class="brand" aria-label="Vedic Pandit home">
-        <img class="logo" src="logo.svg" alt="" width="46" height="46">
+        <img class="logo" src="logo.svg" alt="" width="56" height="56">
         <span class="names"><span class="mark sa">वैदिक पंडित</span><span class="latin">Vedic Pandit</span></span>
       </a>
       <nav class="desk" aria-label="Main">
@@ -28,6 +29,7 @@ import { BotAvatarComponent } from './shared/bot-avatar.component';
         <a routerLink="/learn" [class.on]="inMantra()">{{ i18n.t('nav.mantra') }}</a>
         <a routerLink="/granth" routerLinkActive="on">{{ i18n.t('nav.granth') }}</a>
         <a routerLink="/samagri" routerLinkActive="on">{{ i18n.t('nav.samagri') }}</a>
+        @if (acc.configured) { <a routerLink="/pandits" [class.on]="inBooking()">{{ i18n.t('nav.book') }}</a> }
       </nav>
       <div class="prefs">
         <label class="sr-only" for="lang">Language</label>
@@ -41,6 +43,13 @@ import { BotAvatarComponent } from './shared/bot-avatar.component';
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c1.6 2.2 2.4 3.9 2.4 5.2A2.4 2.4 0 0 1 12 10.6a2.4 2.4 0 0 1-2.4-2.4C9.6 6.9 10.4 5.2 12 3Z"/><path d="M3 14h18c-.6 3.6-4.2 6-9 6s-8.4-2.4-9-6Z"/><path d="M12 10.6V14"/></svg>
           <span>{{ i18n.t('nav.dakshina') }}</span>
         </a>
+        @if (acc.configured) {
+          <a routerLink="/account" routerLinkActive="on" class="me" [attr.aria-label]="i18n.t('nav.account')" [title]="i18n.t('nav.account')">
+            @if (acc.user()) { <span class="av">{{ initial() }}</span> }
+            @else { <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.2-4 4.3-6 8-6s6.8 2 8 6"/></svg> }
+            @if (acc.pending()) { <i class="badge">{{ acc.pending() }}</i> }
+          </a>
+        }
         @if (!native.isApp) {
           <button type="button" class="get" (click)="getApp.set(true)" [attr.aria-label]="i18n.t('getApp')" [title]="i18n.t('appTitle')">
             <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7v7M9 11.5l3 3 3-3M10.5 18.5h3"/></svg>
@@ -108,6 +117,12 @@ import { BotAvatarComponent } from './shared/bot-avatar.component';
         <vp-bot-avatar [size]="40" />
         <span><b>✨ {{ i18n.t('askAiShort') }}</b><small>{{ i18n.t('botHello') }}</small></span>
       </a>
+      @if (acc.configured) {
+        <a routerLink="/pandits" class="sheet-book" (click)="more.set(false)">
+          <span class="bi" aria-hidden="true">🕉️</span>
+          <span><b>{{ i18n.t('bookTitle') }}</b><small>{{ i18n.t('bookSub') }}</small></span>
+        </a>
+      }
       <div class="sheet-grid">
         <a routerLink="/muhurat" routerLinkActive="on" (click)="more.set(false)">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg><span>{{ i18n.t('nav.muhurat') }}</span></a>
@@ -119,6 +134,10 @@ import { BotAvatarComponent } from './shared/bot-avatar.component';
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M9 8h7M9 11h5"/></svg><span>{{ i18n.t('libGita') }}</span></a>
         <a routerLink="/dakshina" routerLinkActive="on" (click)="more.set(false)">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c1.6 2.2 2.4 3.9 2.4 5.2A2.4 2.4 0 0 1 12 10.6a2.4 2.4 0 0 1-2.4-2.4C9.6 6.9 10.4 5.2 12 3Z"/><path d="M3 14h18c-.6 3.6-4.2 6-9 6s-8.4-2.4-9-6Z"/></svg><span>{{ i18n.t('nav.dakshina') }}</span></a>
+        @if (acc.configured) {
+          <a routerLink="/account" routerLinkActive="on" (click)="more.set(false)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.2-4 4.3-6 8-6s6.8 2 8 6"/></svg><span>{{ i18n.t('nav.account') }}</span></a>
+        }
         @if (!native.isApp) {
           <button type="button" (click)="more.set(false); getApp.set(true)">
             <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7v7M9 11.5l3 3 3-3"/></svg><span>{{ i18n.t('getApp') }}</span></button>
@@ -163,11 +182,11 @@ import { BotAvatarComponent } from './shared/bot-avatar.component';
     .top { background: var(--ink); color: #F6F4FA; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 45; }
     .bar { display: flex; align-items: center; gap: 24px; min-height: 64px; }
     .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; line-height: 1.05; flex: none; }
-    .brand .logo { width: 46px; height: 46px; flex: none; }
+    .brand .logo { width: 56px; height: 56px; flex: none; }
     .brand .names { display: flex; flex-direction: column; }
-    .mark { font-size: 1.45rem; color: #fff; }
+    .mark { font-size: 1.75rem; color: #fff; line-height: 1.15; }
     .latin { font-size: .74rem; letter-spacing: .02em; color: rgba(246,244,250,.62); white-space: nowrap; }
-    .latin { color: var(--haldi); font-weight: 600; letter-spacing: .06em; }
+    .latin { color: var(--haldi); font-weight: 600; letter-spacing: .06em; font-size: .86rem; }
     .desk { display: flex; gap: 4px; flex: 1; }
     .desk a { color: rgba(246,244,250,.82); text-decoration: none; padding: 8px 12px; border-radius: 999px; font-weight: 500; white-space: nowrap; }
     .desk a:hover { color: #fff; background: rgba(255,255,255,.07); }
@@ -180,6 +199,11 @@ import { BotAvatarComponent } from './shared/bot-avatar.component';
     .acts svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
     .dak { background: var(--haldi); color: var(--ink); border: 1.5px solid var(--haldi); }
     .dak:hover, .dak.on { background: #F0B53A; }
+    .me { position: relative; justify-content: center; padding: 0 !important; width: 40px; background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,.3); }
+    .me:hover, .me.on { border-color: var(--haldi); }
+    .me .av { width: 30px; height: 30px; border-radius: 50%; background: var(--haldi); color: var(--ink); display: grid; place-items: center; font-weight: 700; font-size: .9rem; }
+    .me .badge { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 999px; background: var(--sindoor); color: #fff;
+      font-style: normal; font-size: .7rem; font-weight: 700; display: grid; place-items: center; border: 2px solid var(--ink); }
     .get { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,.3); }
     .get:hover { border-color: rgba(255,255,255,.6); }
     main { min-height: 70vh; }
@@ -261,6 +285,10 @@ import { BotAvatarComponent } from './shared/bot-avatar.component';
         background: var(--ink); color: #fff; margin-bottom: 12px; }
       .sheet-ai b { display: block; font-size: 1.02rem; }
       .sheet-ai small { display: block; color: rgba(246,244,250,.75); font-size: .82rem; }
+      .sheet-book { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px; text-decoration: none; margin-bottom: 12px;
+        background: var(--haldi-soft); border: 1.5px solid var(--haldi); color: var(--ink); }
+      .sheet-book .bi { font-size: 1.9rem; width: 40px; text-align: center; }
+      .sheet-book b { display: block; font-size: 1.02rem; } .sheet-book small { display: block; color: var(--muted); font-size: .82rem; }
       .sheet-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
       .sheet-grid a, .sheet-grid button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 80px;
         border: 1px solid var(--line); border-radius: 14px; background: var(--paper); color: var(--ink); text-decoration: none; font: inherit;
@@ -270,12 +298,16 @@ import { BotAvatarComponent } from './shared/bot-avatar.component';
       .bar { flex-wrap: wrap; gap: 8px 12px; padding-block: 10px; min-height: 0; }
       .brand { flex: 1; order: 0; }
       .acts { order: 1; }
-      .acts a, .acts button { min-height: 38px; padding: 5px 12px 5px 9px; font-size: .86rem; }
+      .acts a, .acts button { min-height: 34px; padding: 3px 10px 3px 8px; font-size: .84rem; gap: 5px; }
+      .acts svg { width: 17px; height: 17px; }
+      .me { width: 34px; height: 34px; }
+      .me .av { width: 26px; height: 26px; font-size: .82rem; }
       .dak span { display: inline; }
-      .get { padding: 5px 9px; }
+      .get { padding: 3px 8px; }
       .get span { display: none; }
-      .mark { font-size: 1.3rem; }
-      .brand .logo { width: 40px; height: 40px; }
+      .mark { font-size: 1.6rem; }
+      .latin { font-size: .8rem; }
+      .brand .logo { width: 52px; height: 52px; }
       .prefs { flex: 1 1 100%; order: 2; display: flex; gap: 6px; }
       .prefs > * { min-width: 0; }
       .prefs vp-place-picker { flex: 0 1 auto; min-width: 0; max-width: 46%; }
@@ -305,13 +337,13 @@ import { BotAvatarComponent } from './shared/bot-avatar.component';
     @media (max-width: 1024px) and (min-width: 600px) { .tabbar { padding-inline: max(10%, env(safe-area-inset-left, 0px)); } }
     @media (max-width: 380px) {
       .bar { gap: 8px; }
-      .mark { font-size: 1.15rem; }
-      .latin { font-size: .64rem; }
-      .brand .logo { width: 34px; height: 34px; }
+      .mark { font-size: 1.35rem; }
+      .latin { font-size: .7rem; }
+      .brand .logo { width: 44px; height: 44px; }
       .brand { gap: 8px; }
       .acts { gap: 6px; }
-      .acts a, .acts button { min-height: 36px; font-size: .8rem; }
-      .dak { padding: 4px 10px 4px 8px; }
+      .acts a, .acts button { min-height: 32px; font-size: .8rem; }
+      .dak { padding: 3px 8px 3px 7px; }
       .acts svg { width: 17px; height: 17px; }
     }
   `],
@@ -336,7 +368,10 @@ export class AppComponent {
   openBot() { this.teaser.set(false); this.more.set(false); this.drawer.set(true); }
   readonly more = signal(false);
   /** The current page lives in the More sheet (the tab bar shows only Today, Panchang, Rashifal, Granth). */
-  inMore() { const u = this.url(); return ['/muhurat', '/learn', '/mantra', '/samagri', '/dakshina'].some(p => u.startsWith(p)); }
+  inMore() { const u = this.url(); return ['/muhurat', '/learn', '/mantra', '/samagri', '/dakshina', '/pandit', '/booking', '/account', '/admin'].some(p => u.startsWith(p)); }
+  inBooking() { const u = this.url(); return ['/pandit', '/booking'].some(p => u.startsWith(p)); }
+  readonly acc = inject(AccountService);
+  initial() { const n = this.acc.profile()?.name || this.acc.user()?.email || '?'; return n.trim()[0]?.toUpperCase() ?? '?'; }
 
   constructor() {
     const router = inject(Router);

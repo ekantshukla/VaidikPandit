@@ -88,6 +88,9 @@ The engine exists twice with identical math:
 - **Rashifal** (`/rashifal`, button on the home page and in the menu): today, tomorrow, this week and this month for all 12
   rashis, from the real Moon transit (Chandra gochar) and Sun transit, with lucky colour/number, a simple upay linked to the
   mantra player, and a finder that gives the naam rashi from the first letter of a name (Devanagari or Roman).
+- **Book a Pandit** (`/pandits`, `/pandit`, `/account`, `/admin`): devotee and Pandit accounts on Firebase, Pandit profiles that the
+  owner verifies in an admin page, booking requests, in-app chat, and Call / WhatsApp once a Pandit accepts. Dakshina is paid
+  to the Pandit directly. Setup: [PANDIT_BOOKING.md](PANDIT_BOOKING.md).
 - **PanditJi**:
   - Answers any question with Google Gemini's free API (or Groq / OpenRouter) straight from the app, see [FREE_AI.md](FREE_AI.md),
     or with Claude / a free model through the .NET server.

@@ -7,7 +7,7 @@ const config: CapacitorConfig = {
   webDir: 'dist/vedic-pandit-client/browser',
   backgroundColor: '#1D1736',
   plugins: {
-    SplashScreen: { launchShowDuration: 900, backgroundColor: '#1D1736', showSpinner: false },
+    SplashScreen: { launchShowDuration: 600, backgroundColor: '#1D1736', showSpinner: false },
   },
 };
 

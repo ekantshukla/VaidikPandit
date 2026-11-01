@@ -15,5 +15,11 @@ export const routes: Routes = [
   { path: 'rashifal', loadComponent: () => import('./features/rashifal/rashifal.component').then(m => m.RashifalComponent), title: 'Rashifal — Vedic Pandit' },
   { path: 'ask', loadComponent: () => import('./features/chat/chat.component').then(m => m.ChatPageComponent), title: 'Ask AI PanditJi — Vedic Pandit' },
   { path: 'dakshina', loadComponent: () => import('./features/dakshina/dakshina.component').then(m => m.DakshinaComponent), title: 'Dakshina — Vedic Pandit' },
+  { path: 'pandits', loadComponent: () => import('./features/booking/pandits.component').then(m => m.PanditsComponent), title: 'Book a Pandit — Vedic Pandit' },
+  { path: 'pandits/:id', loadComponent: () => import('./features/booking/pandit-profile.component').then(m => m.PanditProfileComponent), title: 'Pandit — Vedic Pandit' },
+  { path: 'booking/:id', loadComponent: () => import('./features/booking/booking.component').then(m => m.BookingComponent), title: 'Booking — Vedic Pandit' },
+  { path: 'pandit', loadComponent: () => import('./features/booking/pandit-dashboard.component').then(m => m.PanditDashboardComponent), title: 'For Pandits — Vedic Pandit' },
+  { path: 'account', loadComponent: () => import('./features/booking/account.component').then(m => m.AccountComponent), title: 'My account — Vedic Pandit' },
+  { path: 'admin', loadComponent: () => import('./features/booking/admin.component').then(m => m.AdminComponent), title: 'Admin — Vedic Pandit' },
   { path: '**', redirectTo: '' },
 ];

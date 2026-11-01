@@ -60,6 +60,22 @@ jobs:
           sed -i "s|^export const API_URL: string = .*|export const API_URL: string = '${{ vars.API_URL }}';|" src/app/core/app-info.ts
           sed -i "s|^export const APP_VERSION = .*|export const APP_VERSION = '${VERSION_NAME}';|" src/app/core/app-info.ts
 
+      # Accounts and Pandit booking (see PANDIT_BOOKING.md). Written with node so quotes and braces in the config are safe.
+      - name: Connect Pandit booking (Firebase)
+        env:
+          FIREBASE_CONFIG: ${{ vars.FIREBASE_CONFIG }}
+          ADMIN_EMAILS: ${{ vars.ADMIN_EMAILS }}
+        run: |
+          node -e '
+            const fs = require("fs"), f = "src/app/core/app-info.ts";
+            let s = fs.readFileSync(f, "utf8");
+            const put = (name, v) => { s = s.replace(new RegExp("^export const " + name + ": string = .*$", "m"), "export const " + name + ": string = " + JSON.stringify(v.trim()) + ";"); };
+            put("FIREBASE_CONFIG", process.env.FIREBASE_CONFIG || "");
+            put("ADMIN_EMAILS", process.env.ADMIN_EMAILS || "");
+            fs.writeFileSync(f, s);
+          '
+          if [ -z "$FIREBASE_CONFIG" ]; then echo "::notice::No FIREBASE_CONFIG variable: Pandit booking pages say 'coming soon'."; fi
+
       # Free AI for PanditJi straight from the app (see FREE_AI.md): secret FREE_AI_KEY, optional variables AI_BASE_URL / AI_MODEL.
       - name: Give PanditJi his free AI key
         env:

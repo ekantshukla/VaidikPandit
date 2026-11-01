@@ -10,8 +10,20 @@
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="icon" type="image/svg+xml" href="logo.svg">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script>
+    // Low-memory phones (Android Go, e.g. Redmi A series): switch off animations so scrolling stays smooth. See .lite in styles.css.
+    try { var n = navigator, m = n.deviceMemory;
+      if ((m && m <= 2) || /Android Go|Redmi A\d|\bGo\b.*Edition/i.test(n.userAgent)) document.documentElement.classList.add('lite');
+    } catch (e) {}
+  </script>
 </head>
 <body>
-  <app-root></app-root>
+  <app-root>
+    <!-- Shown while the app starts; Angular replaces it as soon as the first page is ready. -->
+    <div style="position:fixed;inset:0;background:#1D1736;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px">
+      <img src="logo.svg" alt="" width="132" height="132">
+      <img src="wordmark.png" alt="वैदिक पंडित · Vedic Pandit" width="220" style="height:auto">
+    </div>
+  </app-root>
 </body>
 </html>
