@@ -17,6 +17,7 @@ export const LANGS: Lang[] = [
 type Dict = Record<string, string>;
 
 const en: Dict = {
+  appTick: 'Panchang, Rashifal, AI PanditJi, Vivah Melapak and Pandit booking in your pocket. Free, light, works on Android Go phones', appInstall: 'Install',
   'nav.milan': 'Vivah Melapak', milanSub: 'Match the kundli of bride and groom: 36 gunas, Nadi, Bhakoot, Manglik.',
   'nav.book': 'Book Pandit', 'nav.account': 'My account', bookTitle: 'Book a verified Pandit', bookSub: 'Griha pravesh, katha, havan, sanskar: send a request, chat and call.',
   stPanchang: "Calculating panchang…", stMuhurat: "Scanning dates for muhurat…", stMantra: "Opening the mantra…", stGranth: "Searching the granth…", stRashifal: "Reading the Moon's transit…", stRead: "Opening the granth…", aiBusy: "(The AI is busy right now, so this is a built-in answer. Please ask again in a minute.)", fallbackHere: "Here are the details:", fallbackNone: "AI PanditJi is not reachable right now. Please try again in a minute, or use the Panchang, Rashifal and Granth pages.",
@@ -123,6 +124,7 @@ const en: Dict = {
 };
 
 const hi: Dict = {
+  appTick: 'पंचांग, राशिफल, AI पंडित जी, विवाह मेलापक और पंडित बुकिंग, सब आपकी जेब में। मुफ़्त, हल्का, Android Go फ़ोन पर भी चलता है', appInstall: 'इंस्टॉल',
   'nav.milan': 'विवाह मेलापक', milanSub: 'वर-वधू की कुंडली मिलाएँ: 36 गुण, नाड़ी, भकूट, मांगलिक दोष।',
   'nav.book': 'पंडित बुक करें', 'nav.account': 'मेरा खाता', bookTitle: 'सत्यापित पंडित जी बुक करें', bookSub: 'गृह प्रवेश, कथा, हवन, संस्कार: अनुरोध भेजें, बात करें, फ़ोन करें।',
   stPanchang: "पंचांग की गणना हो रही है…", stMuhurat: "मुहूर्त खोजे जा रहे हैं…", stMantra: "मंत्र खोला जा रहा है…", stGranth: "ग्रंथ में खोज रहे हैं…", stRashifal: "चंद्रमा का गोचर देख रहे हैं…", stRead: "ग्रंथ खोला जा रहा है…", aiBusy: "(AI अभी व्यस्त है, इसलिए यह अंतर्निहित उत्तर है। थोड़ी देर बाद फिर पूछें।)", fallbackHere: "विवरण नीचे देखें:", fallbackNone: "AI पंडित जी अभी उपलब्ध नहीं हैं। थोड़ी देर बाद फिर पूछें, या पंचांग, राशिफल और ग्रंथ पेज देखें।",
@@ -229,6 +231,7 @@ const hi: Dict = {
 };
 
 const mr: Dict = {
+  appTick: 'पंचांग, राशीभविष्य, AI पंडितजी, विवाह मेलापक आणि गुरुजी बुकिंग, सगळं तुमच्या खिशात. मोफत आणि हलकं', appInstall: 'इंस्टॉल',
   'nav.milan': 'विवाह मेलापक', milanSub: 'वधू-वरांची कुंडली जुळवा: 36 गुण, नाडी, भकूट, मंगळ दोष.',
   'nav.book': 'पंडित बुक करा', 'nav.account': 'माझे खाते', bookTitle: 'सत्यापित गुरुजी बुक करा', bookSub: 'गृहप्रवेश, कथा, होम, संस्कार: विनंती पाठवा, बोला, फोन करा.',
   chatEmpty: "नमस्कार, मी AI पंडितजी. मला काहीही विचारा: तुमचे राशीभविष्य, आजचे पंचांग, मुहूर्त, मंत्र, गीता — किंवा कोणताही प्रश्न.", ex1: "गीतेत क्रोधाबद्दल काय सांगितले आहे?", ex2: "उद्या गाडी खरेदी करणे शुभ आहे का?", ex3: "महामृत्युंजय मंत्राचा योग्य उच्चार शिकवा", ex4: "पुढची एकादशी कधी आहे?", ex5: "मेष राशीचे आजचे भविष्य सांगा", askNext: "पुढे विचारू शकता", botHello: "AI पंडितजींना काहीही विचारा 🙏", botOnline: "ऑनलाइन · प्रत्येक प्रश्नाचे उत्तर", botBuiltIn: "अंगभूत उत्तरे (सर्व्हर जोडलेला नाही)", thinking: "AI पंडितजी विचार करत आहेत…", askAiShort: "AI पंडितजींना विचारा", openChat: "AI पंडितजींना विचारा", aiAnything: "प्रत्येक प्रश्नाचे उत्तर, तुमच्या भाषेत", readAloud: "ऐका", stopReading: "थांबा", listening: "ऐकत आहे… थांबवण्यासाठी दाबा", speak: "बोलून विचारा", listenSpeak: "बोला… पंडितजी ऐकत आहेत", stPanchang: "पंचांग मोजत आहे…", stMuhurat: "मुहूर्त शोधत आहे…", stMantra: "मंत्र उघडत आहे…", stGranth: "ग्रंथ शोधत आहे…", stRashifal: "चंद्राचे गोचर पाहत आहे…", stRead: "ग्रंथ उघडत आहे…", aiBusy: "(AI सध्या व्यस्त आहे, म्हणून हे अंगभूत उत्तर आहे. थोड्या वेळाने पुन्हा विचारा.)", fallbackHere: "तपशील खाली पाहा:", fallbackNone: "AI पंडितजी सध्या उपलब्ध नाहीत. थोड्या वेळाने पुन्हा विचारा, किंवा पंचांग, राशीभविष्य आणि ग्रंथ पाने पाहा.",
