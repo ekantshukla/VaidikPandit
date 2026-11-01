@@ -12,6 +12,7 @@ export const routes: Routes = [
   { path: 'learn/:deity', loadComponent: () => import('./features/learn/deity.component').then(m => m.DeityComponent), title: 'Mantra, Stotra, Chalisa, Aarti — Vaidik Pandit' },
   { path: 'learn', loadComponent: () => import('./features/learn/learn.component').then(m => m.LearnComponent), title: 'Learn mantras — Vaidik Pandit' },
   { path: 'samagri', loadComponent: () => import('./features/samagri/samagri.component').then(m => m.SamagriComponent), title: 'Puja samagri — Vaidik Pandit' },
+  { path: 'milan', loadComponent: () => import('./features/milan/milan.component').then(m => m.MilanComponent), title: 'Vivah Melapak (Kundli Milan) — Vaidik Pandit' },
   { path: 'rashifal', loadComponent: () => import('./features/rashifal/rashifal.component').then(m => m.RashifalComponent), title: 'Rashifal — Vaidik Pandit' },
   { path: 'ask', loadComponent: () => import('./features/chat/chat.component').then(m => m.ChatPageComponent), title: 'Ask AI PanditJi — Vaidik Pandit' },
   { path: 'dakshina', loadComponent: () => import('./features/dakshina/dakshina.component').then(m => m.DakshinaComponent), title: 'Dakshina — Vaidik Pandit' },

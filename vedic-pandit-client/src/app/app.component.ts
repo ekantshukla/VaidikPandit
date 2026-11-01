@@ -26,6 +26,7 @@ import { AccountService } from './core/services/account.service';
         <a routerLink="/panchang" routerLinkActive="on">{{ i18n.t('nav.panchang') }}</a>
         <a routerLink="/rashifal" routerLinkActive="on">{{ i18n.t('nav.rashifal') }}</a>
         <a routerLink="/muhurat" routerLinkActive="on">{{ i18n.t('nav.muhurat') }}</a>
+        <a routerLink="/milan" routerLinkActive="on">{{ i18n.t('nav.milan') }}</a>
         <a routerLink="/learn" [class.on]="inMantra()">{{ i18n.t('nav.mantra') }}</a>
         <a routerLink="/granth" routerLinkActive="on">{{ i18n.t('nav.granth') }}</a>
         <a routerLink="/samagri" routerLinkActive="on">{{ i18n.t('nav.samagri') }}</a>
@@ -127,6 +128,8 @@ import { AccountService } from './core/services/account.service';
       <div class="sheet-grid">
         <a routerLink="/muhurat" routerLinkActive="on" (click)="more.set(false)">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg><span>{{ i18n.t('nav.muhurat') }}</span></a>
+        <a routerLink="/milan" routerLinkActive="on" (click)="more.set(false)">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="14" r="5"/><circle cx="15" cy="14" r="5"/><path d="M10 4h4l-2 3z"/></svg><span>{{ i18n.t('nav.milan') }}</span></a>
         <a routerLink="/learn" [class.on]="inMantra()" (click)="more.set(false)">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg><span>{{ i18n.t('nav.mantra') }}</span></a>
         <a routerLink="/samagri" routerLinkActive="on" (click)="more.set(false)">
@@ -272,7 +275,7 @@ import { AccountService } from './core/services/account.service';
     .prefs .lang { max-width: 104px; }
     /* Desktop: one row, using the full screen width so the header never runs off the right edge.
        It gets more compact step by step on smaller laptops (incl. 125–150% Windows scaling),
-       and only below 1280px does the menu move to a second row. */
+       and only below 1360px does the menu move to a second row. */
     @media (min-width: 1025px) {
       .top .bar { max-width: 1760px; }
     }
@@ -286,7 +289,7 @@ import { AccountService } from './core/services/account.service';
       .desk a { padding: 7px 7px; font-size: .95rem; }
       .prefs { gap: 6px; } .prefs .lang { max-width: 96px; }
     }
-    @media (min-width: 1025px) and (max-width: 1279px) {
+    @media (min-width: 1025px) and (max-width: 1359px) {
       .bar { flex-wrap: wrap; row-gap: 0; padding-top: 6px; }
       .prefs { order: 1; margin-left: auto; } .acts { order: 2; }
       .desk { order: 3; flex: 1 1 100%; padding-bottom: 6px; margin-left: -8px; }
@@ -390,7 +393,7 @@ export class AppComponent {
   openBot() { this.teaser.set(false); this.more.set(false); this.drawer.set(true); }
   readonly more = signal(false);
   /** The current page lives in the More sheet (the tab bar shows only Today, Panchang, Rashifal, Granth). */
-  inMore() { const u = this.url(); return ['/muhurat', '/learn', '/mantra', '/samagri', '/dakshina', '/pandit', '/booking', '/account', '/admin'].some(p => u.startsWith(p)); }
+  inMore() { const u = this.url(); return ['/muhurat', '/milan', '/learn', '/mantra', '/samagri', '/dakshina', '/pandit', '/booking', '/account', '/admin'].some(p => u.startsWith(p)); }
   inBooking() { const u = this.url(); return ['/pandit', '/booking'].some(p => u.startsWith(p)); }
   readonly acc = inject(AccountService);
   initial() { const n = this.acc.profile()?.name || this.acc.user()?.email || '?'; return n.trim()[0]?.toUpperCase() ?? '?'; }
