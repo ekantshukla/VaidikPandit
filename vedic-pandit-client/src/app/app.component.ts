@@ -16,6 +16,16 @@ import { AccountService } from './core/services/account.service';
   imports: [RouterOutlet, RouterLink, RouterLinkActive, PlacePickerComponent, ChatPanelComponent, GetAppComponent, BotAvatarComponent],
   template: `
   <a class="skip" href="#main">Skip to content</a>
+  <!-- Phones in a browser: a closable "get the app" banner at the very top (instead of a button in the header) -->
+  @if (showStrip()) {
+    <aside class="strip" aria-label="App">
+      <img class="sicon" src="logo.svg" alt="" width="36" height="36">
+      <span class="stext"><b>{{ i18n.t('appTitle') }}</b>
+        <span class="tick"><span>{{ i18n.t('appTick') }}&nbsp;&nbsp;•&nbsp;&nbsp;{{ i18n.t('appTick') }}</span></span></span>
+      <button type="button" class="btn sget" (click)="getApp.set(true)">{{ i18n.t('appInstall') }}</button>
+      <button type="button" class="sx" (click)="dismissStrip()" [attr.aria-label]="i18n.t('closeChat')">✕</button>
+    </aside>
+  }
   <header class="top">
     <div class="wrap bar">
       <a routerLink="/" class="brand" aria-label="Vaidik Pandit home">
@@ -52,7 +62,7 @@ import { AccountService } from './core/services/account.service';
             @if (acc.pending()) { <i class="badge">{{ acc.pending() }}</i> }
           </a>
         }
-        @if (!native.isApp) {
+        @if (!native.isApp && !phoneBrowser) {
           <button type="button" class="get" (click)="getApp.set(true)" [attr.aria-label]="i18n.t('getApp')" [title]="i18n.t('appTitle')">
             <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7v7M9 11.5l3 3 3-3M10.5 18.5h3"/></svg>
             <span>{{ i18n.t('getApp') }}</span>
@@ -62,14 +72,6 @@ import { AccountService } from './core/services/account.service';
     </div>
   </header>
 
-  @if (showStrip()) {
-    <aside class="strip" aria-label="App">
-      <img class="sicon" src="logo.svg" alt="" width="40" height="40">
-      <span class="stext"><b>{{ i18n.t('appTitle') }}</b><small>{{ i18n.t('appSub') }}</small></span>
-      <button type="button" class="btn sget" (click)="getApp.set(true)">{{ i18n.t('getApp') }}</button>
-      <button type="button" class="sx" (click)="dismissStrip()" [attr.aria-label]="i18n.t('closeChat')">✕</button>
-    </aside>
-  }
   <main id="main"><router-outlet /></main>
 
   <footer class="foot">
@@ -188,7 +190,7 @@ import { AccountService } from './core/services/account.service';
     .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; line-height: 1.05; flex: none; }
     .brand .logo { width: 56px; height: 56px; flex: none; }
     .brand .names { display: flex; flex-direction: column; }
-    .mark { font-size: 1.75rem; color: #fff; line-height: 1.15; }
+    .mark { font-size: 1.75rem; color: #fff; line-height: 1.15; white-space: nowrap; }
     .latin { font-size: .74rem; letter-spacing: .02em; color: rgba(246,244,250,.62); white-space: nowrap; }
     .latin { color: var(--haldi); font-weight: 600; letter-spacing: .06em; font-size: .86rem; }
     .desk { display: flex; gap: 4px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
@@ -214,14 +216,17 @@ import { AccountService } from './core/services/account.service';
     main { min-height: 70vh; }
     .strip { display: none; }
     @media (max-width: 1024px) {
-      .strip { display: flex; align-items: center; gap: 10px; background: var(--card); border-bottom: 1px solid var(--line);
-        padding: 10px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px)); }
-      .sicon { width: 40px; height: 40px; flex: none; border-radius: 10px; background: var(--ink); padding: 2px; }
+      .strip { display: flex; align-items: center; gap: 10px; background: linear-gradient(90deg, #FBEFD2, #F6E2B0); border-bottom: 1px solid #EBD39A;
+        padding: calc(8px + env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) 8px max(12px, env(safe-area-inset-left, 0px)); position: relative; z-index: 46; }
+      .sicon { width: 36px; height: 36px; flex: none; border-radius: 9px; background: var(--ink); padding: 2px; }
       .stext { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
-      .stext b { color: var(--ink); font-size: .92rem; }
-      .stext small { color: var(--muted); font-size: .78rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-      .sget { min-height: 38px; padding: 6px 16px; font-size: .9rem; flex: none; }
-      .sx { width: 32px; height: 32px; flex: none; border: 0; background: none; color: var(--faint); cursor: pointer; font-size: .95rem; }
+      .stext b { color: var(--ink); font-size: .88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .tick { overflow: hidden; white-space: nowrap; color: var(--muted); font-size: .78rem;
+        -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
+      .tick span { display: inline-block; padding-left: 100%; animation: tick 22s linear infinite; }
+      @keyframes tick { to { transform: translateX(-100%); } }
+      .sget { min-height: 34px; padding: 5px 14px; font-size: .85rem; flex: none; }
+      .sx { width: 30px; height: 30px; flex: none; border: 0; background: none; color: var(--muted); cursor: pointer; font-size: .95rem; }
     }
     .foot-links { display: flex; gap: 8px 22px; flex-wrap: wrap; justify-content: center; margin-top: 24px; }
     .foot-links a, .foot-links button { background: none; border: 0; padding: 4px 0; font: inherit; font-size: var(--s0); font-weight: 600; color: var(--sindoor); cursor: pointer;
@@ -253,7 +258,7 @@ import { AccountService } from './core/services/account.service';
       font-weight: 600; font-size: .9rem; box-shadow: 0 8px 22px rgba(29,23,54,.18); white-space: nowrap; animation: pop .3s ease-out; }
     @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
     @keyframes pop { from { transform: translateY(6px) scale(.96); opacity: 0; } to { transform: none; opacity: 1; } }
-    @media (prefers-reduced-motion: reduce) { .bot-fab .ring { animation: none; } }
+    @media (prefers-reduced-motion: reduce) { .bot-fab .ring { animation: none; } .tick span { animation: none; padding-left: 0; } }
     .scrim { position: fixed; inset: 0; background: rgba(29,23,54,.38); z-index: 50; }
     .botwin { position: fixed; right: calc(20px + env(safe-area-inset-right, 0px)); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); z-index: 60;
       width: min(420px, calc(100vw - 40px)); height: min(680px, calc(100vh - 110px)); background: var(--paper); border-radius: 22px; overflow: hidden;
@@ -384,9 +389,14 @@ export class AppComponent {
   inMantra() { const u = this.url(); return u.startsWith('/learn') || u.startsWith('/mantra'); }
   readonly getApp = signal(false);
   readonly stripClosed = signal(this.readStrip());
-  private readStrip(): boolean { try { return localStorage.getItem('vp.appStrip') === 'closed'; } catch { return false; } }
-  dismissStrip() { this.stripClosed.set(true); try { localStorage.setItem('vp.appStrip', 'closed'); } catch { /* ignore */ } }
-  showStrip() { return !this.native.isApp && (this.native.platform === 'android' || this.native.platform === 'ios') && !this.stripClosed() && !this.onAsk(); }
+  /** Closed banners come back after 7 days. */
+  private readStrip(): boolean {
+    try { const t = Number(localStorage.getItem('vp.appStripAt') || 0); return Date.now() - t < 7 * 86400000; } catch { return false; }
+  }
+  dismissStrip() { this.stripClosed.set(true); try { localStorage.setItem('vp.appStripAt', String(Date.now())); } catch { /* ignore */ } }
+  /** The APK is for Android, so the banner shows in Android phone browsers. */
+  get phoneBrowser() { return !this.native.isApp && this.native.platform === 'android'; }
+  showStrip() { return this.phoneBrowser && !this.stripClosed() && !this.onAsk(); }
   readonly native = inject(NativeService);
   readonly teaser = signal(false);
 
