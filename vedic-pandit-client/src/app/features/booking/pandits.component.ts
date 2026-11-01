@@ -13,7 +13,7 @@ import { BOOKING_CSS, BookingOffComponent, FaceComponent, PUJAS, SPOKEN, useTx }
   template: `
   <div class="wrap page">
     <h1>{{ t.tx('Book a Pandit', 'पंडित जी बुक करें') }}</h1>
-    <p class="lead">{{ t.tx('Every Pandit here is checked and approved by Vedic Pandit. Send a request, chat, and call him once he accepts.',
+    <p class="lead">{{ t.tx('Every Pandit here is checked and approved by Vaidik Pandit. Send a request, chat, and call him once he accepts.',
       'यहाँ हर पंडित जी की जाँच करके स्वीकृति दी गई है। अनुरोध भेजें, बात करें और स्वीकार होने पर सीधे फ़ोन करें।') }}</p>
 
     @if (!acc.configured) { <vp-booking-off /> }
@@ -59,9 +59,9 @@ import { BOOKING_CSS, BookingOffComponent, FaceComponent, PUJAS, SPOKEN, useTx }
           }
         </div>
       }
-      <p class="note">{{ t.tx('Dakshina and samagri are settled directly with the Pandit. Vedic Pandit only connects you and does not take any payment.',
+      <p class="note">{{ t.tx('Dakshina and samagri are settled directly with the Pandit. Vaidik Pandit only connects you and does not take any payment.',
         'दक्षिणा और सामग्री की बात सीधे पंडित जी से होती है। वैदिक पंडित केवल आपको जोड़ता है, कोई भुगतान नहीं लेता।') }}</p>
-      <a routerLink="/pandit" class="join">🪔 {{ t.tx('Are you a Pandit? Join Vedic Pandit', 'क्या आप पंडित हैं? वैदिक पंडित से जुड़ें') }} →</a>
+      <a routerLink="/pandit" class="join">🪔 {{ t.tx('Are you a Pandit? Join Vaidik Pandit', 'क्या आप पंडित हैं? वैदिक पंडित से जुड़ें') }} →</a>
     }
   </div>`,
   styles: [BOOKING_CSS + `

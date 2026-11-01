@@ -95,7 +95,7 @@ export class SamagriComponent {
   private text() {
     const p = this.cur(), hi = this.hi();
     const lines = p.items.map((it, i) => `${this.isDone(i) ? '✅' : '⬜'} ${hi ? it[0] : it[1]}${it[2] ? ' (' + it[2] + ')' : ''}`);
-    return `🪔 ${hi ? p.hi : p.en} — ${hi ? 'पूजा सामग्री' : 'puja samagri'}\n\n${lines.join('\n')}\n\n— Vedic Pandit`;
+    return `🪔 ${hi ? p.hi : p.en} — ${hi ? 'पूजा सामग्री' : 'puja samagri'}\n\n${lines.join('\n')}\n\n— Vaidik Pandit`;
   }
   waLink() { return 'https://wa.me/?text=' + encodeURIComponent(this.text()); }
   async copy() {

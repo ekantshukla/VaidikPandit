@@ -3,7 +3,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 /** Settings for the Android app (built with Capacitor from the same Angular code as the website). */
 const config: CapacitorConfig = {
   appId: 'com.vedicpandit.app',
-  appName: 'Vedic Pandit',
+  appName: 'Vaidik Pandit',
   webDir: 'dist/vedic-pandit-client/browser',
   backgroundColor: '#1D1736',
   plugins: {

@@ -84,7 +84,7 @@ import { BOOKING_CSS, BookingOffComponent, PUJAS, bookingStatusText, fmtDate, in
           </form>
         } @else { <p class="muted closed">{{ t.tx('This booking is closed.', 'यह बुकिंग बंद हो चुकी है।') }}</p> }
       </section>
-      <p class="note">{{ t.tx('Please do not pay anyone before the puja is confirmed. Report misuse to the Vedic Pandit team.', 'पूजा पक्की होने से पहले किसी को भुगतान न करें। किसी भी गड़बड़ की सूचना वैदिक पंडित टीम को दें।') }}</p>
+      <p class="note">{{ t.tx('Please do not pay anyone before the puja is confirmed. Report misuse to the Vaidik Pandit team.', 'पूजा पक्की होने से पहले किसी को भुगतान न करें। किसी भी गड़बड़ की सूचना वैदिक पंडित टीम को दें।') }}</p>
     }
     @else if (missing()) { <p class="muted">{{ t.tx('Booking not found, or you do not have access to it.', 'बुकिंग नहीं मिली, या आपको इसकी अनुमति नहीं है।') }}</p> }
     @else { <p class="muted">{{ t.tx('Loading…', 'लोड हो रहा है…') }}</p> }
@@ -157,7 +157,7 @@ export class BookingComponent {
   waLink(b: Booking) {
     const text = this.asPandit()
       ? this.t.tx(`Namaste ${b.userName} ji, about your ${b.puja} booking on ${b.date}.`, `नमस्ते ${b.userName} जी, ${b.date} की ${b.puja} बुकिंग के बारे में।`)
-      : this.t.tx(`Namaste PanditJi, about my ${b.puja} booking on ${b.date} (Vedic Pandit).`, `नमस्ते पंडित जी, ${b.date} की ${b.puja} बुकिंग के बारे में (वैदिक पंडित)।`);
+      : this.t.tx(`Namaste PanditJi, about my ${b.puja} booking on ${b.date} (Vaidik Pandit).`, `नमस्ते पंडित जी, ${b.date} की ${b.puja} बुकिंग के बारे में (वैदिक पंडित)।`);
     return `https://wa.me/${this.phone()}?text=${encodeURIComponent(text)}`;
   }
   private scroll() { const el = this.box()?.nativeElement; if (el) el.scrollTop = el.scrollHeight; }

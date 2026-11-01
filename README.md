@@ -1,4 +1,4 @@
-# Vedic Pandit — वैदिक पंडित
+# Vaidik Pandit — वैदिक पंडित
 
 A .NET 8 + Angular 19 website for **drik panchang**, **muhurat search**, **mantra uchcharan** (chant-along with
 per-word highlighting in 9 scripts) and **PanditJi**, a Claude-powered guide to the Dharma Granths that answers

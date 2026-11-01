@@ -23,7 +23,7 @@ import { BOOKING_CSS, BookingOffComponent, FaceComponent, PUJAS, SAMPRADAYAS, SP
           <h1>{{ p.name }}</h1>
           <p class="muted">📍 {{ p.city }}@if (p.state) {, {{ stateName(p.state) }} }</p>
           <p class="tags">
-            @if (p.status === 'approved') { <span class="tag ok">✔ {{ t.tx('Verified by Vedic Pandit', 'वैदिक पंडित द्वारा सत्यापित') }}</span> }
+            @if (p.status === 'approved') { <span class="tag ok">✔ {{ t.tx('Verified by Vaidik Pandit', 'वैदिक पंडित द्वारा सत्यापित') }}</span> }
             @else { <span class="tag bad">{{ t.tx('Not available for booking', 'बुकिंग के लिए उपलब्ध नहीं') }}</span> }
             @if (p.online) { <span class="tag ok">● {{ t.tx('Available', 'उपलब्ध') }}</span> }
           </p>

@@ -15,7 +15,7 @@ import { BOOKING_CSS, BookingOffComponent, FaceComponent, PUJAS, SPOKEN, intlPho
     @if (!acc.configured) { <vp-booking-off /> }
     @else if (acc.user() === undefined) { <p class="muted">{{ t.tx('Loading…', 'लोड हो रहा है…') }}</p> }
     @else if (!acc.isAdmin()) {
-      <div class="panel empty">{{ t.tx('This page is only for the Vedic Pandit team.', 'यह पृष्ठ केवल वैदिक पंडित टीम के लिए है।') }}
+      <div class="panel empty">{{ t.tx('This page is only for the Vaidik Pandit team.', 'यह पृष्ठ केवल वैदिक पंडित टीम के लिए है।') }}
         @if (acc.user() === null) { <a routerLink="/account" [queryParams]="{ next: '/admin' }">{{ t.tx('Log in', 'लॉग इन') }} →</a> }</div>
     } @else {
       @if (!acc.user()?.verified) { <p class="err">{{ t.tx('Verify your admin email first (see My account), or Firestore will refuse changes.', 'पहले अपना एडमिन ईमेल सत्यापित करें (मेरा खाता देखें), नहीं तो बदलाव नहीं होंगे।') }}</p> }

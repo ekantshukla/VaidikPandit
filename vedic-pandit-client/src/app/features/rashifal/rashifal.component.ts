@@ -267,7 +267,7 @@ export class RashifalComponent {
     if (d) lines.push(`${d.date} ${stars(d.score)}`, this.L(d.text.overall), this.L(d.text.work), `${this.i18n.t('rfLuckyColour')}: ${this.L(d.luckyColour)} · ${this.i18n.t('rfLuckyNumber')}: ${d.luckyNumbers.join(', ')}`);
     else if (m) lines.push(stars(m.score), this.L(m.text));
     else lines.push(...this.week().map(w => `${w.date} ${stars(w.score)}`));
-    lines.push('', 'Vedic Pandit');
+    lines.push('', 'Vaidik Pandit');
     return 'https://wa.me/?text=' + encodeURIComponent(lines.join('\n'));
   }
 }

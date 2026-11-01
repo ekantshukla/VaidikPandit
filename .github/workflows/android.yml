@@ -2,7 +2,7 @@
 # Runs when the app's code changes on main, and on demand (Actions tab -> "Build Android app" -> Run workflow).
 #
 # The newest app is always at:
-#   https://github.com/<you>/<repo>/releases/latest/download/VedicPandit.apk
+#   https://github.com/<you>/<repo>/releases/latest/download/VaidikPandit.apk
 # The website's "Get App" button points there.
 #
 # One-time setup: add the 4 signing secrets (see ANDROID.md). Without them the workflow still
@@ -116,26 +116,30 @@ jobs:
           chmod +x gradlew
           if [ -n "$KEYSTORE_FILE" ]; then
             ./gradlew assembleRelease --no-daemon
-            cp app/build/outputs/apk/release/app-release.apk ../../VedicPandit.apk
+            cp app/build/outputs/apk/release/app-release.apk ../../VaidikPandit.apk
           else
             ./gradlew assembleDebug --no-daemon
-            cp app/build/outputs/apk/debug/app-debug.apk ../../VedicPandit.apk
+            cp app/build/outputs/apk/debug/app-debug.apk ../../VaidikPandit.apk
           fi
+          # Same file under the old name, so apps installed before the rename still find their update
+          cp ../../VaidikPandit.apk ../../VedicPandit.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: VedicPandit-${{ env.VERSION_NAME }}
-          path: VedicPandit.apk
+          name: VaidikPandit-${{ env.VERSION_NAME }}
+          path: VaidikPandit.apk
 
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.VERSION_NAME }}
-          name: Vedic Pandit ${{ env.VERSION_NAME }}
+          name: Vaidik Pandit ${{ env.VERSION_NAME }}
           make_latest: true
-          files: VedicPandit.apk
+          files: |
+            VaidikPandit.apk
+            VedicPandit.apk
           body: |
-            📱 **Install:** open this page on your Android phone, tap **VedicPandit.apk**, then **Install**.
+            📱 **Install:** open this page on your Android phone, tap **VaidikPandit.apk**, then **Install**.
             If Android asks, allow installing apps from your browser ("Install unknown apps").
 
             Already have the app? Installing this updates it, and your city and language stay.

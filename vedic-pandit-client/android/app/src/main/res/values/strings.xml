@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Vedic Pandit</string>
-    <string name="title_activity_main">Vedic Pandit</string>
+    <string name="app_name">Vaidik Pandit</string>
+    <string name="title_activity_main">Vaidik Pandit</string>
     <string name="package_name">com.vedicpandit.app</string>
     <string name="custom_url_scheme">com.vedicpandit.app</string>
 </resources>

@@ -1,4 +1,4 @@
-# Putting Vedic Pandit online
+# Putting Vaidik Pandit online
 
 > **Just want PanditJi to answer everything for free, without a server?** See [FREE_AI.md](FREE_AI.md): one free
 > Google Gemini key saved as a GitHub secret, then re-run the two workflows.

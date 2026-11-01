@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Security rules for Vedic Pandit accounts and Pandit booking (see PANDIT_BOOKING.md).
+// Security rules for Vaidik Pandit accounts and Pandit booking (see PANDIT_BOOKING.md).
 // Paste this whole file into Firebase console > Firestore Database > Rules, then Publish.
 // IMPORTANT: put your own admin email(s) in isAdmin() below, in lower case. They must match the ADMIN_EMAILS variable.
 service cloud.firestore {

@@ -18,9 +18,9 @@ import { AccountService } from './core/services/account.service';
   <a class="skip" href="#main">Skip to content</a>
   <header class="top">
     <div class="wrap bar">
-      <a routerLink="/" class="brand" aria-label="Vedic Pandit home">
+      <a routerLink="/" class="brand" aria-label="Vaidik Pandit home">
         <img class="logo" src="logo.svg" alt="" width="56" height="56">
-        <span class="names"><span class="mark sa">वैदिक पंडित</span><span class="latin">Vedic Pandit</span></span>
+        <span class="names"><span class="mark sa">वैदिक पंडित</span><span class="latin">Vaidik Pandit</span></span>
       </a>
       <nav class="desk" aria-label="Main">
         <a routerLink="/panchang" routerLinkActive="on">{{ i18n.t('nav.panchang') }}</a>
@@ -79,7 +79,7 @@ import { AccountService } from './core/services/account.service';
         @if (!native.isApp) { <button type="button" (click)="getApp.set(true)">{{ i18n.t('appTitle') }}</button> }
       </nav>
       <div class="sign">
-        <p class="copy"><span class="nw">© {{ year }} Vedic Pandit. All rights reserved.</span>&ngsp;<span class="nw">Sacred texts belong to all.</span></p>
+        <p class="copy"><span class="nw">© {{ year }} Vaidik Pandit. All rights reserved.</span>&ngsp;<span class="nw">Sacred texts belong to all.</span></p>
         <p class="credit"><span class="nw">Crafted with devotion by&nbsp;<a href="https://ekantshukla.github.io" target="_blank" rel="noopener" class="sig">Ekant Shukla</a></span>&ngsp;<span class="nw">in Bengaluru, India</span></p>
       </div>
     </div>

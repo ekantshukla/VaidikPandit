@@ -222,5 +222,5 @@ export class GranthReaderComponent {
   async copy(v: GranthVerse) {
     try { await navigator.clipboard.writeText(`${v[1]}\n— ${this.ref(v)}`); this.copied.set(v[0]); setTimeout(() => this.copied.set(null), 1500); } catch { /* ignore */ }
   }
-  share(v: GranthVerse) { return 'https://wa.me/?text=' + encodeURIComponent(`${v[1]}\n— ${this.ref(v)}\n\nVedic Pandit`); }
+  share(v: GranthVerse) { return 'https://wa.me/?text=' + encodeURIComponent(`${v[1]}\n— ${this.ref(v)}\n\nVaidik Pandit`); }
 }

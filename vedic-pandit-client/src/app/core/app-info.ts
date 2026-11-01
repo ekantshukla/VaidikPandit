@@ -36,7 +36,7 @@ const [owner, repo] = GITHUB_REPO.split('/');
 /** The live website (GitHub Pages). */
 export const WEBSITE_URL = `https://${owner.toLowerCase()}.github.io/${repo}/`;
 /** Always the newest Android app. */
-export const APK_URL = `https://github.com/${GITHUB_REPO}/releases/latest/download/VedicPandit.apk`;
+export const APK_URL = `https://github.com/${GITHUB_REPO}/releases/latest/download/VaidikPandit.apk`;
 
 /** Dakshina (donations) via UPI. */
 export const UPI_ID = 'shuklaekant@okhdfcbank';

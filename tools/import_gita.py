@@ -7,7 +7,7 @@ Sources:
   English         Swami Sivananda's translation, from the same dataset. Swami Sivananda died in 1963;
                   under Indian copyright law (author's life + 60 years) his works entered the public domain
                   in India on 1 January 2024.
-  Hindi           Only for the hand-picked verses in gita-curated.json (written for Vedic Pandit). The content
+  Hindi           Only for the hand-picked verses in gita-curated.json (written for Vaidik Pandit). The content
                   store merges that file with this one, so those verses keep their Hindi and keywords.
 
 Usage:
@@ -57,7 +57,7 @@ def main(verse_path: str, translation_path: str) -> None:
         "nameDevanagari": "श्रीमद्भगवद्गीता",
         "category": "Itihasa (Mahabharata, Bhishma Parva)",
         "description": "The dialogue between Shri Krishna and Arjuna on the battlefield of Kurukshetra, in 18 chapters.",
-        "translationCredit": "English: Swami Sivananda. Hindi (selected verses): Vedic Pandit.",
+        "translationCredit": "English: Swami Sivananda. Hindi (selected verses): Vaidik Pandit.",
         "verses": out_verses,
     }]
     OUT.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")

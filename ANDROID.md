@@ -1,4 +1,4 @@
-# Vedic Pandit Android app
+# Vaidik Pandit Android app
 
 The app is the same Angular code as the website, wrapped with [Capacitor](https://capacitorjs.com)
 (the same setup as Cassette.fm). GitHub builds the APK for you, so there is nothing to install on your computer.
@@ -24,7 +24,7 @@ PanditJi gives full AI answers once you host the API and set the `API_URL` repos
    You can skip this step to try the app first: the workflow then builds a test (debug) APK.
 4. **Build:** push to `main`, or go to **Actions → Build Android app → Run workflow** (about 6–8 minutes).
 5. **Get the APK:** this link always gives the newest one, and the website's **Get App** button uses it:
-   `https://github.com/<your-username>/VedicPandit/releases/latest/download/VedicPandit.apk`
+   `https://github.com/<your-username>/VedicPandit/releases/latest/download/VaidikPandit.apk`
 
 On the phone: tap **Get App** → **Download** → **Install** (allow "Install unknown apps" for the browser when asked).
 Installing a newer APK updates the app.

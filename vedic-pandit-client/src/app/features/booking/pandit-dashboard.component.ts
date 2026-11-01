@@ -19,7 +19,7 @@ type Form = Omit<Pandit, 'uid' | 'status' | 'createdAt' | 'approvedAt' | 'reject
     @else if (acc.user() === null) {
       <section class="intro panel">
         <span class="om" aria-hidden="true">🕉️</span>
-        <h1>{{ t.tx('Join Vedic Pandit as a Pandit', 'वैदिक पंडित से पंडित के रूप में जुड़ें') }}</h1>
+        <h1>{{ t.tx('Join Vaidik Pandit as a Pandit', 'वैदिक पंडित से पंडित के रूप में जुड़ें') }}</h1>
         <ul>
           <li>{{ t.tx('Free to join. No commission: devotees pay your dakshina directly to you.', 'जुड़ना मुफ़्त है। कोई कमीशन नहीं: यजमान दक्षिणा सीधे आपको देते हैं।') }}</li>
           <li>{{ t.tx('Get booking requests from devotees near you and online.', 'अपने क्षेत्र और ऑनलाइन यजमानों से बुकिंग पाएँ।') }}</li>
@@ -98,7 +98,7 @@ type Form = Omit<Pandit, 'uid' | 'status' | 'createdAt' | 'approvedAt' | 'reject
           'धन्यवाद! आपकी प्रोफ़ाइल की जाँच चल रही है। स्वीकृति मिलते ही यह चालू हो जाएगी, आमतौर पर 1–2 दिन में। हमारी टीम आपको फ़ोन कर सकती है।') }}</div> }
         @case ('rejected') { <div class="banner bad">{{ t.tx('Your profile was not approved.', 'आपकी प्रोफ़ाइल स्वीकृत नहीं हुई।') }} @if (mp.rejectReason) { <b>{{ mp.rejectReason }}</b> }
           {{ t.tx('Fix it and submit again.', 'सुधार कर फिर से भेजें।') }}</div> }
-        @case ('suspended') { <div class="banner bad">{{ t.tx('Your profile is paused by the Vedic Pandit team. Please contact us.', 'वैदिक पंडित टीम ने आपकी प्रोफ़ाइल रोकी है। कृपया संपर्क करें।') }}</div> }
+        @case ('suspended') { <div class="banner bad">{{ t.tx('Your profile is paused by the Vaidik Pandit team. Please contact us.', 'वैदिक पंडित टीम ने आपकी प्रोफ़ाइल रोकी है। कृपया संपर्क करें।') }}</div> }
         @case ('approved') {
           <label class="avail panel">
             <span><b>{{ mp.online ? t.tx('Taking bookings', 'बुकिंग ले रहे हैं') : t.tx('Not taking bookings', 'बुकिंग बंद है') }}</b>

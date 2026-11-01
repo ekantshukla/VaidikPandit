@@ -1,6 +1,6 @@
 # Accounts and Pandit booking: setup
 
-Vedic Pandit lets devotees create an account and book a verified Pandit. Pandits sign up, fill in a profile, and you approve them. After a Pandit accepts a booking, the devotee can chat with him in the app and call or WhatsApp him directly. Dakshina is paid straight to the Pandit; the site takes no payment.
+Vaidik Pandit lets devotees create an account and book a verified Pandit. Pandits sign up, fill in a profile, and you approve them. After a Pandit accepts a booking, the devotee can chat with him in the app and call or WhatsApp him directly. Dakshina is paid straight to the Pandit; the site takes no payment.
 
 Accounts and data are stored in **Firebase** (Google). The free Spark plan is enough, and you don't need a card. Until you finish these steps, the booking pages say "coming soon" and the rest of the site works as before.
 
@@ -29,7 +29,7 @@ Accounts and data are stored in **Firebase** (Google). The free Spark plan is en
 
 ### 4. Copy the web config into GitHub
 1. In Firebase, click the gear icon → **Project settings**. Under **Your apps**, click the **Web** icon `</>`.
-2. Name the app `Vedic Pandit web` (you don't need Hosting) and click **Register app**.
+2. Name the app `Vaidik Pandit web` (you don't need Hosting) and click **Register app**.
 3. Firebase shows a block like this one. Copy the whole `firebaseConfig = { … }` part:
    ```js
    const firebaseConfig = {

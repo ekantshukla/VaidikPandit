@@ -131,7 +131,7 @@ export class DakshinaComponent {
 
   /** NPCI UPI deep link: opens GPay / PhonePe / Paytm / BHIM with payee and amount filled in. */
   readonly upiLink = computed(() => {
-    const p = new URLSearchParams({ pa: UPI_ID, pn: UPI_NAME, cu: 'INR', tn: 'Dakshina - Vedic Pandit' });
+    const p = new URLSearchParams({ pa: UPI_ID, pn: UPI_NAME, cu: 'INR', tn: 'Dakshina - Vaidik Pandit' });
     if (this.value()) p.set('am', this.value().toFixed(2));
     return `upi://pay?${p.toString().replace(/\+/g, '%20')}`;
   });

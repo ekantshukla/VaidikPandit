@@ -1,6 +1,6 @@
 {
 	"appId": "com.vedicpandit.app",
-	"appName": "Vedic Pandit",
+	"appName": "Vaidik Pandit",
 	"webDir": "dist/vedic-pandit-client/browser",
 	"backgroundColor": "#1D1736",
 	"plugins": {

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Android 12+ system launch screen: logo in the middle, the name "वैदिक पंडित · VEDIC PANDIT" below it. -->
+    <!-- Android 12+ system launch screen: logo in the middle, the name "वैदिक पंडित · VAIDIK PANDIT" below it. -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:background">@drawable/splash</item>
         <item name="windowSplashScreenBackground">@color/ic_launcher_background</item>
