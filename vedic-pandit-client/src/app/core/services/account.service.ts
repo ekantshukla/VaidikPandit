@@ -72,7 +72,9 @@ export class AccountService {
       const app = appMod.initializeApp(this.cfg);
       // No popup/redirect resolver: email sign-in only, which also works inside the Android app's WebView
       const auth = A.initializeAuth(app, { persistence: [A.indexedDBLocalPersistence, A.browserLocalPersistence] });
-      const db = F.getFirestore(app);
+      // Databases created in the new console may be named "default" instead of "(default)": add databaseId to FIREBASE_CONFIG then
+      const dbId = this.cfg?.['databaseId'];
+      const db = dbId && dbId !== '(default)' ? F.getFirestore(app, dbId) : F.getFirestore(app);
       A.onAuthStateChanged(auth, async (u: any) => {
         this.user.set(u ? { uid: u.uid, email: u.email ?? '', verified: !!u.emailVerified } : null);
         rememberAccount(!!u);
@@ -87,6 +89,14 @@ export class AccountService {
     const { db, F } = await this.init();
     const p = await F.getDoc(F.doc(db, 'users', uid));
     if (p.exists()) this.profile.set({ uid, ...p.data(), createdAt: ts(p.data().createdAt) } as Profile);
+    else {
+      // The login exists but its profile was never saved (e.g. the database wasn't ready at sign-up): create a basic one
+      const { auth } = await this.init();
+      const u = auth.currentUser;
+      const basic = { name: (u?.displayName ?? '').slice(0, 80), email: u?.email ?? '', phone: '', city: '', role: 'user' as Role };
+      await F.setDoc(F.doc(db, 'users', uid), { ...basic, createdAt: F.serverTimestamp() }).catch((e: any) => console.warn('profile create failed', e));
+      this.profile.set({ uid, ...basic });
+    }
     const pd = await F.getDoc(F.doc(db, 'pandits', uid)).catch(() => null);
     if (pd?.exists()) this.myPandit.set(await this.withPrivate(this.toPandit(pd)));
     this.watchPending(uid);
@@ -119,7 +129,7 @@ export class AccountService {
 
   /** Friendly message for Firebase error codes. */
   errorText(e: any, hi: boolean): string {
-    const c = String(e?.code ?? e?.message ?? e);
+    const c = String(e?.code ?? e?.message ?? e).toLowerCase();
     const map: [string, string, string][] = [
       ['invalid-credential', 'Wrong email or password.', 'ईमेल या पासवर्ड ग़लत है।'],
       ['wrong-password', 'Wrong email or password.', 'ईमेल या पासवर्ड ग़लत है।'],
@@ -129,10 +139,18 @@ export class AccountService {
       ['invalid-email', 'Please enter a valid email.', 'सही ईमेल लिखें।'],
       ['network-request-failed', 'No internet connection.', 'इंटरनेट कनेक्शन नहीं है।'],
       ['too-many-requests', 'Too many tries. Please wait a few minutes.', 'बहुत बार प्रयास हुआ। कुछ मिनट रुकें।'],
-      ['permission-denied', 'You are not allowed to do that.', 'आपको यह करने की अनुमति नहीं है।'],
+      ['permission-denied', 'You are not allowed to do that. (Check the Firestore rules are published.)', 'आपको यह करने की अनुमति नहीं है। (Firestore rules जाँचें)'],
+      ['operation-not-allowed', 'Email sign-in is not switched on in Firebase Authentication.', 'Firebase में ईमेल लॉग इन चालू नहीं है।'],
+      ['api-key', 'The Firebase config (FIREBASE_CONFIG) looks wrong.', 'Firebase config (FIREBASE_CONFIG) ग़लत लग रहा है।'],
+      ['configuration-not-found', 'Firebase Authentication is not set up for this project.', 'इस प्रोजेक्ट में Firebase Authentication चालू नहीं है।'],
+      ['unauthorized-domain', 'This website address is not in Firebase Authorised domains.', 'यह वेबसाइट Firebase Authorised domains में नहीं है।'],
+      ['not-found', 'The Firestore database was not found. Its ID must be (default).', 'Firestore डेटाबेस नहीं मिला। उसकी ID (default) होनी चाहिए।'],
+      ['failed to fetch', 'Could not load Firebase. Check your internet and try again.', 'Firebase लोड नहीं हुआ। इंटरनेट जाँचें।'],
     ];
     const hit = map.find(([k]) => c.includes(k));
-    return hit ? (hi ? hit[2] : hit[1]) : (hi ? 'कुछ गड़बड़ हुई। फिर प्रयास करें।' : 'Something went wrong. Please try again.');
+    console.warn('Firebase error', e);
+    // Show the code too, so a problem can be reported and fixed
+    return hit ? (hi ? hit[2] : hit[1]) : (hi ? 'कुछ गड़बड़ हुई। फिर प्रयास करें।' : 'Something went wrong. Please try again.') + (hit ? '' : ` [${c.slice(0, 120)}]`);
   }
 
   // ---------------- auth ----------------
