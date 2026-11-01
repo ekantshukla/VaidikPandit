@@ -45,7 +45,8 @@ import { AccountService } from './core/services/account.service';
         </a>
         @if (acc.configured) {
           <a routerLink="/account" routerLinkActive="on" class="me" [attr.aria-label]="i18n.t('nav.account')" [title]="i18n.t('nav.account')">
-            @if (acc.user()) { <span class="av">{{ initial() }}</span> }
+            @if (acc.profile()?.photo || acc.myPandit()?.photo; as ph) { <img class="av" [src]="ph" alt=""> }
+            @else if (acc.user()) { <span class="av">{{ initial() }}</span> }
             @else { <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.2-4 4.3-6 8-6s6.8 2 8 6"/></svg> }
             @if (acc.pending()) { <i class="badge">{{ acc.pending() }}</i> }
           </a>
@@ -202,7 +203,7 @@ import { AccountService } from './core/services/account.service';
     .dak:hover, .dak.on { background: #F0B53A; }
     .me { position: relative; justify-content: center; padding: 0 !important; width: 40px; background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,.3); }
     .me:hover, .me.on { border-color: var(--haldi); }
-    .me .av { width: 30px; height: 30px; border-radius: 50%; background: var(--haldi); color: var(--ink); display: grid; place-items: center; font-weight: 700; font-size: .9rem; }
+    .me .av { width: 30px; height: 30px; border-radius: 50%; background: var(--haldi); color: var(--ink); display: grid; place-items: center; font-weight: 700; font-size: .9rem; object-fit: cover; }
     .me .badge { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 999px; background: var(--sindoor); color: #fff;
       font-style: normal; font-size: .7rem; font-weight: 700; display: grid; place-items: center; border: 2px solid var(--ink); }
     .get { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,.3); }
