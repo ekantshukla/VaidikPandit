@@ -187,7 +187,8 @@ import { AccountService } from './core/services/account.service';
     .mark { font-size: 1.75rem; color: #fff; line-height: 1.15; }
     .latin { font-size: .74rem; letter-spacing: .02em; color: rgba(246,244,250,.62); white-space: nowrap; }
     .latin { color: var(--haldi); font-weight: 600; letter-spacing: .06em; font-size: .86rem; }
-    .desk { display: flex; gap: 4px; flex: 1; }
+    .desk { display: flex; gap: 4px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+    .desk::-webkit-scrollbar { display: none; }
     .desk a { color: rgba(246,244,250,.82); text-decoration: none; padding: 8px 12px; border-radius: 999px; font-weight: 500; white-space: nowrap; }
     .desk a:hover { color: #fff; background: rgba(255,255,255,.07); }
     .desk a.on { color: var(--ink); background: var(--haldi); }
@@ -269,6 +270,17 @@ import { AccountService } from './core/services/account.service';
     @media (max-width: 1280px) { .bar { gap: 12px; } .desk { gap: 0; } .desk a { padding: 8px 8px; } }
     .prefs .lang { max-width: 104px; }
     @media (max-width: 1240px) { .get span { display: none; } .get { padding: 6px 10px; } }
+    /* Desktop and laptops (incl. 125–150% Windows scaling): two rows so nothing is ever pushed off-screen.
+       Row 1: logo · language/place · Dakshina/account/app. Row 2: the menu. */
+    @media (min-width: 1025px) {
+      .bar { flex-wrap: wrap; row-gap: 2px; padding-top: 8px; }
+      .brand { order: 0; }
+      .prefs { order: 1; margin-left: auto; }
+      .acts { order: 2; }
+      .desk { order: 3; flex: 1 1 100%; gap: 2px; padding-bottom: 8px; margin-left: -8px; }
+      .desk a { padding: 6px 12px; }
+    }
+    @media (min-width: 1025px) and (max-width: 1180px) { .dak span { display: none; } .dak { padding: 6px 10px; } }
 
     /* ---------- phones & small tablets ---------- */
     @media (max-width: 1024px) {

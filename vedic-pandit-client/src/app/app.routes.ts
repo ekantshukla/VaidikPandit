@@ -19,6 +19,7 @@ export const routes: Routes = [
   { path: 'pandits/:id', loadComponent: () => import('./features/booking/pandit-profile.component').then(m => m.PanditProfileComponent), title: 'Pandit — Vaidik Pandit' },
   { path: 'booking/:id', loadComponent: () => import('./features/booking/booking.component').then(m => m.BookingComponent), title: 'Booking — Vaidik Pandit' },
   { path: 'pandit', loadComponent: () => import('./features/booking/pandit-dashboard.component').then(m => m.PanditDashboardComponent), title: 'For Pandits — Vaidik Pandit' },
+  { path: 'auth-action', loadComponent: () => import('./features/booking/auth-action.component').then(m => m.AuthActionComponent), title: 'Vaidik Pandit' },
   { path: 'account', loadComponent: () => import('./features/booking/account.component').then(m => m.AccountComponent), title: 'My account — Vaidik Pandit' },
   { path: 'admin', loadComponent: () => import('./features/booking/admin.component').then(m => m.AdminComponent), title: 'Admin — Vaidik Pandit' },
   { path: '**', redirectTo: '' },
