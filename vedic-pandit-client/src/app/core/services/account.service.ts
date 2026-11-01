@@ -12,7 +12,7 @@ export type Role = 'user' | 'pandit';
 export type PanditStatus = 'pending' | 'approved' | 'rejected' | 'suspended';
 export type BookingStatus = 'requested' | 'accepted' | 'declined' | 'cancelled' | 'completed';
 
-export interface Profile { uid: string; name: string; email: string; phone: string; city: string; role: Role; photo?: string; createdAt?: number; }
+export interface Profile { uid: string; name: string; email: string; phone: string; city: string; state?: string; role: Role; photo?: string; createdAt?: number; }
 export interface Pandit {
   uid: string; name: string; photo: string; phone: string; whatsapp: string; state: string; city: string;
   languages: string[]; sampradaya: string; experience: number; pujas: string[]; fee: string; about: string;
@@ -170,11 +170,11 @@ export class AccountService {
   }
 
   // ---------------- auth ----------------
-  async signUp(d: { name: string; email: string; password: string; phone: string; city: string; role: Role }) {
+  async signUp(d: { name: string; email: string; password: string; phone: string; city: string; state?: string; role: Role }) {
     const { auth, db, A, F } = await this.init();
     const cred = await A.createUserWithEmailAndPassword(auth, d.email.trim(), d.password);
     await A.updateProfile(cred.user, { displayName: d.name.trim() }).catch(() => undefined);
-    const profile = { name: d.name.trim(), email: d.email.trim(), phone: d.phone.trim(), city: d.city.trim(), role: d.role, createdAt: F.serverTimestamp() };
+    const profile = { name: d.name.trim(), email: d.email.trim(), phone: d.phone.trim(), city: d.city.trim(), state: (d.state ?? '').trim(), role: d.role, createdAt: F.serverTimestamp() };
     await F.setDoc(F.doc(db, 'users', cred.user.uid), profile);
     this.profile.set({ uid: cred.user.uid, ...profile, createdAt: Date.now() } as Profile);
     this.sendVerify(A, cred.user).catch(() => undefined);
@@ -205,7 +205,7 @@ export class AccountService {
     const u = auth.currentUser;
     if (u) this.user.set({ uid: u.uid, email: u.email ?? '', verified: !!u.emailVerified });
   }
-  async updateProfile(d: Partial<Pick<Profile, 'name' | 'phone' | 'city' | 'role' | 'photo'>>) {
+  async updateProfile(d: Partial<Pick<Profile, 'name' | 'phone' | 'city' | 'state' | 'role' | 'photo'>>) {
     const { db, F } = await this.init();
     const u = this.user(); if (!u) throw new Error('not signed in');
     await F.updateDoc(F.doc(db, 'users', u.uid), d);
