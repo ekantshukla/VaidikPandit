@@ -15,7 +15,8 @@ import { BOOKING_CSS, BookingOffComponent, FaceComponent, PUJAS, SAMPRADAYAS, SP
     <a routerLink="/pandits" class="back">← {{ t.tx('All Pandits', 'सभी पंडित') }}</a>
     @if (!acc.configured) { <vp-booking-off /> }
     @else if (loading()) { <p class="muted">{{ t.tx('Loading…', 'लोड हो रहा है…') }}</p> }
-    @else if (p(); as p) {
+    @else if (pandit()) {
+      @let p = pandit()!;
       <section class="hero panel">
         <vp-face [photo]="p.photo" [name]="p.name" [size]="96" />
         <div class="who">
@@ -101,7 +102,7 @@ export class PanditProfileComponent {
   readonly pujas = PUJAS;
   readonly sampradayas = SAMPRADAYAS;
   readonly modes: [Booking['mode'], string, string, string][] = [['home', '🏠', 'At my home', 'मेरे घर'], ['temple', '🛕', 'At a temple', 'मंदिर में'], ['online', '📱', 'Online (video)', 'ऑनलाइन (वीडियो)']];
-  readonly p = signal<Pandit | null>(null);
+  readonly pandit = signal<Pandit | null>(null);
   readonly loading = signal(true);
   readonly busy = signal(false);
   readonly msg = signal('');
@@ -114,9 +115,9 @@ export class PanditProfileComponent {
       if (!this.acc.configured || !id) { this.loading.set(false); return; }
       this.loading.set(true);
       this.acc.pandit(id).then(p => {
-        this.p.set(p);
+        this.pandit.set(p);
         if (p) { this.form.puja = p.pujas[0] ?? ''; if (p.pujas.length === 1 && p.pujas[0] === 'Online Puja') this.form.mode = 'online'; }
-      }).catch(() => this.p.set(null)).finally(() => this.loading.set(false));
+      }).catch(() => this.pandit.set(null)).finally(() => this.loading.set(false));
     });
   }
 

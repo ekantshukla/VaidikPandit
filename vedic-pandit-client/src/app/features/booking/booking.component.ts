@@ -17,7 +17,8 @@ import { BOOKING_CSS, BookingOffComponent, PUJAS, bookingStatusText, fmtDate, in
       <div class="panel empty">{{ t.tx('Please log in to see this booking.', 'यह बुकिंग देखने के लिए लॉग इन करें।') }}
         <a routerLink="/account" [queryParams]="{ next: '/booking/' + id() }">{{ t.tx('Log in', 'लॉग इन') }} →</a></div>
     }
-    @else if (b(); as b) {
+    @else if (bk()) {
+      @let b = bk()!;
       <section class="head panel">
         <div class="ttl">
           <span class="pj" aria-hidden="true">🪔</span>
@@ -119,7 +120,7 @@ export class BookingComponent {
   readonly t = useTx();
   readonly pujas = PUJAS;
   readonly id = signal('');
-  readonly b = signal<Booking | null>(null);
+  readonly bk = signal<Booking | null>(null);
   readonly missing = signal(false);
   readonly msgs = signal<Message[]>([]);
   readonly busy = signal(false);
@@ -129,18 +130,18 @@ export class BookingComponent {
   reason = ''; text = '';
   private stops: (() => void)[] = [];
 
-  readonly asPandit = computed(() => { const b = this.b(); return !!b && b.panditId === this.acc.user()?.uid; });
+  readonly asPandit = computed(() => { const b = this.bk(); return !!b && b.panditId === this.acc.user()?.uid; });
   /** The other person's number: the Pandit's (copied on accept) for the devotee, the devotee's for the Pandit. */
-  readonly phone = computed(() => { const b = this.b(); return b ? intlPhone(this.asPandit() ? b.userPhone : (b.panditWhatsapp || b.panditPhone || '')) : ''; });
+  readonly phone = computed(() => { const b = this.bk(); return b ? intlPhone(this.asPandit() ? b.userPhone : (b.panditWhatsapp || b.panditPhone || '')) : ''; });
 
   constructor() {
     inject(ActivatedRoute).paramMap.subscribe(m => this.id.set(m.get('id') ?? ''));
     effect(() => {
       const id = this.id(), u = this.acc.user();
       this.stops.forEach(s => s()); this.stops = [];
-      this.b.set(null); this.missing.set(false);
+      this.bk.set(null); this.missing.set(false);
       if (!u || !id) return;
-      this.stops.push(this.acc.watchBooking(id, b => { this.b.set(b); this.missing.set(!b); }));
+      this.stops.push(this.acc.watchBooking(id, b => { this.bk.set(b); this.missing.set(!b); }));
       this.stops.push(this.acc.watchMessages(id, m => { this.msgs.set(m); setTimeout(() => this.scroll(), 30); }));
     });
     inject(DestroyRef).onDestroy(() => this.stops.forEach(s => s()));
