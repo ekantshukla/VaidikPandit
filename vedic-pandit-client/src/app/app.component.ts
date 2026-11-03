@@ -64,12 +64,6 @@ import { PlayerService } from './core/services/player.service';
             @if (acc.pending()) { <i class="badge">{{ acc.pending() }}</i> }
           </a>
         }
-        @if (!native.isApp && !phoneBrowser) {
-          <button type="button" class="get" (click)="getApp.set(true)" [attr.aria-label]="i18n.t('getApp')" [title]="i18n.t('appTitle')">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7v7M9 11.5l3 3 3-3M10.5 18.5h3"/></svg>
-            <span>{{ i18n.t('getApp') }}</span>
-          </button>
-        }
       </div>
     </div>
   </header>
@@ -82,7 +76,7 @@ import { PlayerService } from './core/services/player.service';
       @if (api.online() === false && !api.ai()) { <p class="note faint">{{ i18n.t('offline') }}</p> }
       <nav class="foot-links" aria-label="More">
         <a routerLink="/dakshina">{{ i18n.t('nav.dakshina') }}</a>
-        @if (!native.isApp) { <button type="button" (click)="getApp.set(true)">{{ i18n.t('appTitle') }}</button> }
+        @if (!native.isApp && native.platform !== 'desktop') { <button type="button" (click)="getApp.set(true)">{{ i18n.t('appTitle') }}</button> }
       </nav>
       <div class="sign">
         <p class="copy"><span class="nw">© {{ year }} Vaidik Pandit. All rights reserved.</span>&ngsp;<span class="nw">Sacred texts belong to all.</span></p>
@@ -319,28 +313,25 @@ import { PlayerService } from './core/services/player.service';
     .bw-body vp-chat-panel { flex: 1; min-height: 0; }
     @keyframes rise { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
 
-    @media (max-width: 1280px) { .bar { gap: 12px; } .desk { gap: 0; } .desk a { padding: 8px 8px; } }
+    @media (max-width: 1280px) { .bar { gap: 12px; } }
     .prefs .lang { max-width: 104px; }
-    /* Desktop: one row, using the full screen width so the header never runs off the right edge.
-       It gets more compact step by step on smaller laptops (incl. 125–150% Windows scaling),
-       and only below 1800px does the menu move to a second row. */
+    /* Desktop: logo left, menu centred in the middle, language / place / Dakshina / account on the right — one row.
+       On smaller laptops (or 125–150% Windows scaling) the menu moves to its own centred row under a thin line. */
     @media (min-width: 1025px) {
       .top .bar { max-width: 1760px; }
+      .desk { justify-content: center; gap: 2px; }
+      .desk a { padding: 8px 11px; }
     }
-    @media (min-width: 1025px) and (max-width: 1600px) {
-      .bar { gap: 14px; }
-      .desk { gap: 0; } .desk a { padding: 8px 9px; }
-    }
-    @media (min-width: 1025px) and (max-width: 1440px) {
-      .dak span { display: none; } .dak { padding: 6px 10px; }
-      .brand .logo { width: 48px; height: 48px; } .mark { font-size: 1.5rem; }
-      .desk a { padding: 7px 7px; font-size: .95rem; }
-      .prefs { gap: 6px; } .prefs .lang { max-width: 96px; }
-    }
-    @media (min-width: 1025px) and (max-width: 1799px) {
-      .bar { flex-wrap: wrap; row-gap: 0; padding-top: 6px; }
+    @media (min-width: 1600px) and (max-width: 1799px) { .bar { gap: 18px; } .desk { gap: 0; } .desk a { padding: 8px 9px; } }
+    @media (min-width: 1025px) and (max-width: 1599px) {
+      .bar { flex-wrap: wrap; row-gap: 0; column-gap: 14px; padding-top: 6px; }
       .prefs { order: 1; margin-left: auto; } .acts { order: 2; }
-      .desk { order: 3; flex: 1 1 100%; padding-bottom: 6px; margin-left: -8px; }
+      .desk { order: 3; flex: 1 1 100%; justify-content: center; gap: 6px; padding: 4px 0 8px; margin-top: 6px;
+        border-top: 1px solid rgba(255,255,255,.09); }
+      .desk a { padding: 7px 13px; font-size: .97rem; }
+    }
+    @media (min-width: 1025px) and (max-width: 1180px) {
+      .desk { gap: 0; } .desk a { padding: 7px 9px; font-size: .94rem; }
     }
 
     /* ---------- phones & small tablets ---------- */
