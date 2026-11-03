@@ -8,6 +8,9 @@ import { DEITIES } from '../../core/data/deities';
 import { useTx } from '../booking/booking-ui';
 
 type Tab = 'rec' | 'radio';
+/** Lower-case, and fold common Roman spelling variants so "Shiv"/"Shiva", "Jagdish"/"Jagadish", "aarti"/"arti" match. */
+const norm = (s: string) => (s || '').toLowerCase().replace(/[.,()·:;!?'"\-–—]/g, ' ')
+  .replace(/aa/g, 'a').replace(/ee/g, 'i').replace(/oo/g, 'u').replace(/([bcdghjklmnprstvy])a(?=[bcdghjklmnprstvy]|\b)/g, '$1').replace(/\s+/g, ' ').trim();
 const KINDS: { id: TrackKind | ''; en: string; hi: string }[] = [
   { id: '', en: 'All', hi: 'सभी' }, { id: 'aarti', en: 'Aarti', hi: 'आरती' }, { id: 'bhajan', en: 'Bhajan', hi: 'भजन' },
   { id: 'stotra', en: 'Stotra', hi: 'स्तोत्र' }, { id: 'kirtan', en: 'Kirtan', hi: 'कीर्तन' }, { id: 'mantra', en: 'Mantra', hi: 'मंत्र' },
@@ -35,6 +38,9 @@ const KINDS: { id: TrackKind | ''; en: string; hi: string }[] = [
     </div>
 
     @if (tab() === 'rec') {
+      <div class="search">
+        <input class="input" type="search" [(ngModel)]="rq" [placeholder]="t.tx('Search bhajans & aartis (e.g. Jagdish, Hanuman, Shiv)…', 'भजन व आरती खोजें (जैसे जगदीश, हनुमान, शिव)…')" aria-label="Search">
+      </div>
       <div class="chips">
         @for (k of kinds; track k.id) { <button type="button" class="chip" [class.on]="kind() === k.id" (click)="kind.set(k.id)">{{ t.tx(k.en, k.hi) }}</button> }
       </div>
@@ -52,6 +58,11 @@ const KINDS: { id: TrackKind | ''; en: string; hi: string }[] = [
             </li>
           }
         </ul>
+      } @else if (rqs().trim()) {
+        <div class="panel empty">
+          <p>{{ t.tx('Nothing found for "' + rqs().trim() + '". Try another word, or listen on the 24×7 Bhajan Radio.', '"' + rqs().trim() + '" से कुछ नहीं मिला। दूसरा शब्द आज़माएँ, या 24×7 भजन रेडियो सुनें।') }}</p>
+          <button type="button" class="btn quiet" (click)="rq = ''">✕ {{ t.tx('Clear search', 'खोज हटाएँ') }}</button>
+        </div>
       } @else {
         <div class="panel empty">
           <p>{{ t.tx('More aartis and bhajans are being added. Meanwhile, try the 24×7 Bhajan Radio.', 'और आरतियाँ व भजन जोड़े जा रहे हैं। तब तक 24×7 भजन रेडियो सुनें।') }}</p>
@@ -178,7 +189,21 @@ export class BhajanComponent {
   private loadAdded() { this.acc.listTracks().then(l => this.added.set(l)).catch(() => this.added.set([])); }
 
   readonly all = computed(() => [...this.added(), ...this.builtIn()]);
-  readonly shown = computed(() => { const k = this.kind(); return k ? this.all().filter(x => x.kind === k) : this.all(); });
+  private readonly rqs = signal('');
+  get rq() { return this.rqs(); } set rq(v: string) { this.rqs.set(v); }
+  /** Search matches English or Hindi title, deity (English, Hindi or id), type and singer; Roman spelling variants like Shiv/Shiva, Jagdish/Jagadish. */
+  readonly shown = computed(() => {
+    const k = this.kind();
+    const words = norm(this.rqs()).split(' ').filter(Boolean);
+    return this.all().filter(x => {
+      if (k && x.kind !== k) return false;
+      if (!words.length) return true;
+      const d = DEITIES.find(y => y.id === x.deity);
+      const kk = KINDS.find(y => y.id === x.kind);
+      const hay = norm([x.title, x.titleHi, x.credit, x.deity, d?.en, d?.hi, kk?.en, kk?.hi].filter(Boolean).join(' '));
+      return words.every(w => hay.includes(w));
+    });
+  });
   readonly filtered = computed(() => {
     const q = this.qs().trim().toLowerCase();
     return q ? this.stations().filter(s => (s.title + ' ' + (s.info ?? '')).toLowerCase().includes(q)) : this.stations();
