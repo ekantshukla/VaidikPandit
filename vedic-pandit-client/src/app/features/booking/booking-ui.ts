@@ -229,7 +229,9 @@ export class FaceComponent {
 export const BOOKING_CSS = `
   .back { display: inline-block; margin-bottom: 12px; font-weight: 600; text-decoration: none; color: var(--sindoor); }
   h1 { margin: 0 0 4px; } .lead { margin: 0 0 18px; color: var(--muted); }
-  .stack { display: grid; gap: 14px; }
+  .stack { display: grid; gap: 14px; grid-template-columns: minmax(0, 1fr); }
+  .stack > *, .field, .row2 > * { min-width: 0; }
+  select.input, .input { min-width: 0; max-width: 100%; text-overflow: ellipsis; }
   .row2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .chip { display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; border-radius: 999px; border: 1.5px solid var(--line);
