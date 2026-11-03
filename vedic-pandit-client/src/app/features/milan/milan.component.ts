@@ -148,7 +148,9 @@ interface Side {
     .lead { margin: 0; color: var(--muted); max-width: 70ch; }
     .pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
     .full { grid-column: 1 / -1; }
-    .side { border: 1px solid var(--line); margin: 0; display: grid; gap: 12px; min-width: 0; border-top: 5px solid var(--haldi); }
+    .side > *, .row2 > * { min-width: 0; }
+    select.input { text-overflow: ellipsis; }
+    .side { border: 1px solid var(--line); margin: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; min-width: 0; border-top: 5px solid var(--haldi); }
     .side.b { border-top-color: var(--sindoor); }
     legend { font-weight: 700; font-size: 1.1rem; color: var(--ink); padding: 0 6px; }
     .row2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
