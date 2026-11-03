@@ -3,6 +3,7 @@
 // no extra packages. Data access is protected by firestore.rules (see PANDIT_BOOKING.md).
 import { Injectable, computed, signal } from '@angular/core';
 import { ADMIN_EMAILS, FIREBASE_CONFIG, WEBSITE_URL } from '../app-info';
+import type { Track } from './player.service';
 
 const SDK = 'https://www.gstatic.com/firebasejs/10.14.1/';
 // Keep the bundler from trying to resolve the CDN URLs
@@ -281,6 +282,23 @@ export class AccountService {
   async setPanditStatus(uid: string, status: PanditStatus, reason = '') {
     const { db, F } = await this.init();
     await F.updateDoc(F.doc(db, 'pandits', uid), { status, rejectReason: reason, ...(status === 'approved' ? { approvedAt: F.serverTimestamp() } : {}) });
+  }
+
+  // ---------------- bhajan / aarti recordings added by the admin ----------------
+  async listTracks(): Promise<Track[]> {
+    const { db, F } = await this.init();
+    const snap = await F.getDocs(F.collection(db, 'tracks'));
+    return snap.docs.map((d: any) => ({ id: 'fs:' + d.id, ...d.data(), createdAt: ts(d.data().createdAt) }) as Track & { createdAt?: number })
+      .sort((a: any, b: any) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
+  }
+  async addTrack(t: Omit<Track, 'id' | 'live' | 'info' | 'favicon'>) {
+    const { db, F } = await this.init();
+    const clean = Object.fromEntries(Object.entries(t).filter(([, v]) => v !== undefined && v !== ''));
+    await F.addDoc(F.collection(db, 'tracks'), { ...clean, createdAt: F.serverTimestamp() });
+  }
+  async deleteTrack(id: string) {
+    const { db, F } = await this.init();
+    await F.deleteDoc(F.doc(db, 'tracks', id.replace(/^fs:/, '')));
   }
 
   // ---------------- bookings ----------------
