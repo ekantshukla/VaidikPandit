@@ -5,9 +5,11 @@ import { ApiService } from '../../core/services/api.service';
 import { AccountService } from '../../core/services/account.service';
 import { PlayerService, Track, TrackKind, devotionalStations } from '../../core/services/player.service';
 import { DEITIES } from '../../core/data/deities';
+import { NativeService } from '../../core/services/native.service';
+import { FreeItem, Source, archiveTracks, downloadTrack, searchArchive, searchCommons } from '../../core/services/free-audio';
 import { useTx } from '../booking/booking-ui';
 
-type Tab = 'rec' | 'radio';
+type Tab = 'rec' | 'free' | 'radio';
 /** Lower-case, and fold common Roman spelling variants so "Shiv"/"Shiva", "Jagdish"/"Jagadish", "aarti"/"arti" match. */
 const norm = (s: string) => (s || '').toLowerCase().replace(/[.,()·:;!?'"\-–—]/g, ' ')
   .replace(/aa/g, 'a').replace(/ee/g, 'i').replace(/oo/g, 'u').replace(/([bcdghjklmnprstvy])a(?=[bcdghjklmnprstvy]|\b)/g, '$1').replace(/\s+/g, ' ').trim();
@@ -34,7 +36,8 @@ const KINDS: { id: TrackKind | ''; en: string; hi: string }[] = [
 
     <div class="tabs" role="tablist">
       <button type="button" role="tab" [class.on]="tab() === 'rec'" [attr.aria-selected]="tab() === 'rec'" (click)="tab.set('rec')">🎵 {{ t.tx('Recordings', 'रिकॉर्डिंग') }}</button>
-      <button type="button" role="tab" [class.on]="tab() === 'radio'" [attr.aria-selected]="tab() === 'radio'" (click)="openRadio()">📻 {{ t.tx('24×7 Bhajan Radio', '24×7 भजन रेडियो') }}</button>
+      <button type="button" role="tab" [class.on]="tab() === 'free'" [attr.aria-selected]="tab() === 'free'" (click)="openFree()">📚 {{ t.tx('Free Library', 'मुफ़्त संग्रह') }}</button>
+      <button type="button" role="tab" [class.on]="tab() === 'radio'" [attr.aria-selected]="tab() === 'radio'" (click)="openRadio()">📻 {{ t.tx('24×7 Radio', '24×7 रेडियो') }}</button>
     </div>
 
     @if (tab() === 'rec') {
@@ -54,19 +57,26 @@ const KINDS: { id: TrackKind | ''; en: string; hi: string }[] = [
                 <b [class.sa]="t.hi() && !!tr.titleHi">{{ t.hi() ? (tr.titleHi || tr.title) : tr.title }}</b>
                 <small>{{ kindName(tr.kind) }}@if (deityName(tr.deity)) { · {{ deityName(tr.deity) }} }@if (tr.credit) { · {{ tr.credit }} }</small>
               </span>
+              <button type="button" class="dl" (click)="save(tr)" [disabled]="saving().has(tr.id)" [title]="t.tx('Download', 'डाउनलोड')" [attr.aria-label]="t.tx('Download', 'डाउनलोड')">{{ saving().has(tr.id) ? '…' : '⬇' }}</button>
               @if (acc.isAdmin() && tr.id.startsWith('fs:')) { <button type="button" class="del" (click)="remove(tr)" [title]="t.tx('Remove', 'हटाएँ')">🗑</button> }
             </li>
           }
         </ul>
       } @else if (rqs().trim()) {
         <div class="panel empty">
-          <p>{{ t.tx('Nothing found for "' + rqs().trim() + '". Try another word, or listen on the 24×7 Bhajan Radio.', '"' + rqs().trim() + '" से कुछ नहीं मिला। दूसरा शब्द आज़माएँ, या 24×7 भजन रेडियो सुनें।') }}</p>
-          <button type="button" class="btn quiet" (click)="rq = ''">✕ {{ t.tx('Clear search', 'खोज हटाएँ') }}</button>
+          <p>{{ t.tx('Nothing found for "' + rqs().trim() + '" in our recordings. Search the Free Library: thousands of bhajans and aartis from Internet Archive and Wikimedia.', 'हमारी रिकॉर्डिंग में "' + rqs().trim() + '" नहीं मिला। मुफ़्त संग्रह में खोजें: Internet Archive और Wikimedia के हज़ारों भजन व आरतियाँ।') }}</p>
+          <div class="actions center">
+            <button type="button" class="btn" (click)="searchFreeFor(rqs())">📚 {{ t.tx('Search Free Library', 'मुफ़्त संग्रह में खोजें') }}</button>
+            <button type="button" class="btn quiet" (click)="rq = ''">✕ {{ t.tx('Clear search', 'खोज हटाएँ') }}</button>
+          </div>
         </div>
       } @else {
         <div class="panel empty">
-          <p>{{ t.tx('More aartis and bhajans are being added. Meanwhile, try the 24×7 Bhajan Radio.', 'और आरतियाँ व भजन जोड़े जा रहे हैं। तब तक 24×7 भजन रेडियो सुनें।') }}</p>
-          <button type="button" class="btn quiet" (click)="openRadio()">📻 {{ t.tx('Open Bhajan Radio', 'भजन रेडियो खोलें') }}</button>
+          <p>{{ t.tx('More aartis and bhajans are being added. Meanwhile, open the Free Library or the 24×7 Bhajan Radio.', 'और आरतियाँ व भजन जोड़े जा रहे हैं। तब तक मुफ़्त संग्रह या 24×7 भजन रेडियो सुनें।') }}</p>
+          <div class="actions center">
+            <button type="button" class="btn" (click)="openFree()">📚 {{ t.tx('Open Free Library', 'मुफ़्त संग्रह खोलें') }}</button>
+            <button type="button" class="btn quiet" (click)="openRadio()">📻 {{ t.tx('Open Bhajan Radio', 'भजन रेडियो खोलें') }}</button>
+          </div>
         </div>
       }
 
@@ -98,6 +108,61 @@ const KINDS: { id: TrackKind | ''; en: string; hi: string }[] = [
           </form>
         </details>
       }
+    } @else if (tab() === 'free') {
+      <form class="search row" (ngSubmit)="runFree()">
+        <input class="input" type="search" name="fq" [(ngModel)]="fq" (ngModelChange)="typed()" [placeholder]="t.tx('Search any bhajan, aarti, singer (e.g. Hanuman Chalisa, Om Jai Jagdish)…', 'कोई भी भजन, आरती, गायक खोजें (जैसे हनुमान चालीसा, ओम जय जगदीश)…')" aria-label="Search">
+        <button type="submit" class="btn">🔍</button>
+      </form>
+      <div class="chips">
+        <button type="button" class="chip src" [class.on]="src() === 'ia'" (click)="setSrc('ia')">🏛️ Internet Archive</button>
+        <button type="button" class="chip src" [class.on]="src() === 'wc'" (click)="setSrc('wc')">🌐 Wikimedia Commons</button>
+        <span class="sep"></span>
+        @for (k of kinds; track k.id) { <button type="button" class="chip" [class.on]="kind() === k.id" (click)="kind.set(k.id)">{{ t.tx(k.en, k.hi) }}</button> }
+      </div>
+      @if (freeErr()) {
+        <div class="panel empty"><p>{{ t.tx("Couldn't reach the library. Check your internet and try again.", 'संग्रह तक नहीं पहुँच सके। इंटरनेट जाँचकर फिर प्रयास करें।') }}</p>
+          <button type="button" class="btn quiet" (click)="runFree()">↻ {{ t.tx('Try again', 'फिर प्रयास करें') }}</button></div>
+      } @else {
+        @if (freeTotal()) { <p class="muted small">{{ t.tx(freeTotal() + ' found', freeTotal() + ' मिले') }}@if (kind()) { · {{ t.tx('showing', 'दिख रहे') }} {{ freeShown().length }} }</p> }
+        <ul class="list">
+          @for (it of freeShown(); track it.id) {
+            <li class="item" [class.now]="itemPlaying(it)">
+              <div class="irow">
+                <button type="button" class="pl" (click)="playItem(it)" [disabled]="opening() === it.id" [attr.aria-label]="t.tx('Play', 'चलाएँ')">{{ opening() === it.id ? '…' : itemPlaying(it) && player.playing() ? '❚❚' : '▶' }}</button>
+                <span class="ti">
+                  <b>{{ it.title }}</b>
+                  <small>{{ kindName(it.kind) }}@if (deityName(it.deity)) { · {{ deityName(it.deity) }} }@if (it.creator) { · {{ it.creator }} }</small>
+                  <small class="lic"><a [href]="it.page" target="_blank" rel="noopener">{{ it.source === 'ia' ? 'archive.org' : 'Wikimedia Commons' }}</a> · {{ it.license }}</small>
+                </span>
+                @if (it.source === 'wc' && it.tracks?.length) {
+                  <button type="button" class="dl" (click)="save(it.tracks![0])" [disabled]="saving().has(it.tracks![0].id)" [title]="t.tx('Download', 'डाउनलोड')" [attr.aria-label]="t.tx('Download', 'डाउनलोड')">{{ saving().has(it.tracks![0].id) ? '…' : '⬇' }}</button>
+                } @else {
+                  <button type="button" class="dl" (click)="toggleItem(it)" [attr.aria-expanded]="open().has(it.id)" [title]="t.tx('Songs & download', 'गीत व डाउनलोड')">{{ open().has(it.id) ? '▴' : '▾' }}</button>
+                }
+              </div>
+              @if (open().has(it.id)) {
+                @if (it.tracks; as trs) {
+                  <ol class="trs">
+                    @for (tr of trs; track tr.id; let i = $index) {
+                      <li [class.now]="player.isCurrent(tr)">
+                        <button type="button" class="pl sm" (click)="playTrack(trs, i)">{{ player.isCurrent(tr) && player.playing() ? '❚❚' : '▶' }}</button>
+                        <span class="ti"><b>{{ tr.title }}</b></span>
+                        <button type="button" class="dl" (click)="save(tr)" [disabled]="saving().has(tr.id)" [title]="t.tx('Download', 'डाउनलोड')" [attr.aria-label]="t.tx('Download', 'डाउनलोड')">{{ saving().has(tr.id) ? '…' : '⬇' }}</button>
+                      </li>
+                    } @empty { <li class="none">{{ t.tx('No playable audio in this item.', 'इसमें चलाने योग्य ऑडियो नहीं है।') }}</li> }
+                  </ol>
+                } @else { <p class="muted small pad">{{ t.tx('Loading songs…', 'गीत लोड हो रहे हैं…') }}</p> }
+              }
+            </li>
+          } @empty {
+            @if (!freeLoading()) { <li class="none">{{ t.tx('Nothing found. Try a simpler word (e.g. Hanuman, Aarti, Krishna) or the other library.', 'कुछ नहीं मिला। सरल शब्द (जैसे हनुमान, आरती, कृष्ण) या दूसरा संग्रह आज़माएँ।') }}</li> }
+          }
+        </ul>
+        @if (freeLoading()) { <p class="muted">{{ t.tx('Searching the library…', 'संग्रह में खोज रहे हैं…') }}</p> }
+        @else if (hasMore()) { <button type="button" class="btn quiet more-btn" (click)="moreFree()">{{ t.tx('Load more', 'और दिखाएँ') }}</button> }
+        <p class="note">{{ t.tx('Only recordings marked free to use are listed: Creative Commons or public domain on Internet Archive, and Wikimedia Commons files (all freely licensed). They play here without ads and you can download them; the licence and source are shown with each. In the Android app, downloads open in your browser to save.',
+          'केवल मुफ़्त उपयोग वाली रिकॉर्डिंग दिखाई जाती हैं: Internet Archive पर Creative Commons या सार्वजनिक (public domain), और Wikimedia Commons की फ़ाइलें (सभी मुक्त लाइसेंस वाली)। ये यहाँ बिना विज्ञापन चलती हैं और डाउनलोड हो सकती हैं; हर एक के साथ लाइसेंस और स्रोत दिखाया गया है। एंड्रॉइड ऐप में डाउनलोड ब्राउज़र में खुलकर सेव होता है।') }}</p>
+      }
     } @else {
       <div class="search">
         <input class="input" [(ngModel)]="q" [placeholder]="t.tx('Search stations (e.g. Krishna, Shiv, Gurbani)…', 'स्टेशन खोजें (जैसे कृष्ण, शिव, गुरबाणी)…')" aria-label="Search">
@@ -126,7 +191,7 @@ const KINDS: { id: TrackKind | ''; en: string; hi: string }[] = [
     .hero { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px; }
     .hero .ic { font-size: 2.6rem; line-height: 1; } .hero h1 { margin: 0 0 6px; }
     .lead { margin: 0; color: var(--muted); max-width: 70ch; }
-    .tabs { display: inline-flex; background: var(--card); border: 1.5px solid var(--line); border-radius: 999px; padding: 4px; margin-bottom: 14px; max-width: 100%; }
+    .tabs { display: flex; width: fit-content; overflow-x: auto; scrollbar-width: none; background: var(--card); border: 1.5px solid var(--line); border-radius: 999px; padding: 4px; margin-bottom: 14px; max-width: 100%; }
     .tabs button { border: 0; background: none; padding: 9px 16px; border-radius: 999px; font: inherit; font-weight: 600; color: var(--muted); cursor: pointer; white-space: nowrap; }
     .tabs button.on { background: var(--ink); color: #fff; }
     .chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin-bottom: 12px; }
@@ -143,6 +208,22 @@ const KINDS: { id: TrackKind | ''; en: string; hi: string }[] = [
     .ti b { color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .ti b.sa { font-weight: 400; font-size: 1.08rem; }
     .ti small { color: var(--muted); font-size: .8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .live { font-style: normal; color: var(--sindoor); font-weight: 700; margin-right: 4px; }
+    .dl { width: 38px; height: 38px; flex: none; border-radius: 50%; border: 1.5px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; font-size: 1rem; display: grid; place-items: center; }
+    .dl:disabled, .pl:disabled { opacity: .6; cursor: default; }
+    .list li.item { display: block; padding: 0; }
+    .irow { display: flex; gap: 12px; align-items: center; padding: 10px 12px; min-width: 0; }
+    .lic { font-size: .74rem !important; } .lic a { color: var(--sindoor); text-decoration: none; }
+    .trs { list-style: none; margin: 0; padding: 4px 12px 10px; display: grid; gap: 6px; border-top: 1px dashed var(--line); }
+    .trs li { display: flex; gap: 10px; align-items: center; padding: 6px 4px; min-width: 0; border-radius: 10px; }
+    .trs li.now { background: var(--haldi-soft); }
+    .trs .ti b { font-weight: 500; font-size: .95rem; }
+    .pl.sm { width: 34px; height: 34px; font-size: .8rem; }
+    .search.row { display: flex; gap: 8px; } .search.row .input { flex: 1; min-width: 0; }
+    .sep { flex: none; width: 1px; background: var(--line); margin: 4px 2px; }
+    .chip.src { font-size: .85rem; }
+    .small { font-size: .85rem; margin: 0 0 8px; } .pad { padding: 0 14px 10px; margin: 0; }
+    .actions.center { justify-content: center; }
+    .more-btn { display: block; margin: 12px auto 0; }
     .del { border: 0; background: none; cursor: pointer; font-size: 1.1rem; }
     .none { justify-content: center; color: var(--muted); }
     .empty { text-align: center; } .empty p { margin: 0 0 12px; color: var(--muted); }
@@ -154,7 +235,7 @@ const KINDS: { id: TrackKind | ''; en: string; hi: string }[] = [
     .err { color: var(--sindoor); margin: 0; } .okmsg { color: var(--tulsi); margin: 0; }
     .note { font-size: var(--s-1); color: var(--faint); margin: 12px 0 0; }
     .more { margin-top: 22px; } .more a { color: var(--sindoor); font-weight: 600; text-decoration: none; }
-    @media (max-width: 560px) { .row2 { grid-template-columns: minmax(0, 1fr); } .tabs button { padding: 8px 12px; font-size: .92rem; } }
+    @media (max-width: 560px) { .row2 { grid-template-columns: minmax(0, 1fr); } .tabs button { padding: 8px 11px; font-size: .9rem; } }
   `],
 })
 export class BhajanComponent {
@@ -162,6 +243,7 @@ export class BhajanComponent {
   readonly player = inject(PlayerService);
   readonly acc = inject(AccountService);
   private api = inject(ApiService);
+  private native = inject(NativeService);
   readonly kinds = KINDS;
   readonly deities = DEITIES;
   readonly tab = signal<Tab>('rec');
@@ -175,6 +257,23 @@ export class BhajanComponent {
   readonly ok = signal(false);
   private readonly qs = signal('');
   get q() { return this.qs(); } set q(v: string) { this.qs.set(v); }
+  // Free library (Internet Archive / Wikimedia Commons)
+  readonly src = signal<Source>('ia');
+  fq = '';
+  readonly freeItems = signal<FreeItem[]>([]);
+  readonly freeTotal = signal(0);
+  readonly freeLoading = signal(false);
+  readonly freeErr = signal(false);
+  readonly hasMore = signal(false);
+  readonly open = signal<Set<string>>(new Set());
+  readonly opening = signal('');
+  readonly saving = signal<Set<string>>(new Set());
+  private iaPage = 1;
+  private wcNext: number | null = null;
+  private runId = 0;
+  private timer?: ReturnType<typeof setTimeout>;
+  readonly freeShown = computed(() => { const k = this.kind(); return k ? this.freeItems().filter(x => x.kind === k) : this.freeItems(); });
+
   f = { title: '', titleHi: '', kind: 'aarti' as TrackKind, deity: '', url: '', credit: '' };
 
   constructor() {
@@ -226,6 +325,69 @@ export class BhajanComponent {
   reloadRadio() {
     this.radioLoading.set(true);
     devotionalStations().then(l => this.stations.set(l)).finally(() => this.radioLoading.set(false));
+  }
+
+  // ---------------------------------------------------------------- free library
+  openFree() { this.tab.set('free'); if (!this.freeItems().length && !this.freeLoading()) this.runFree(); }
+  searchFreeFor(q: string) { this.fq = q.trim(); this.tab.set('free'); this.runFree(); }
+  setSrc(s: Source) { if (this.src() === s) return; this.src.set(s); this.runFree(); }
+  typed() { clearTimeout(this.timer); this.timer = setTimeout(() => this.runFree(), 700); }
+  async runFree() {
+    clearTimeout(this.timer);
+    const id = ++this.runId;
+    this.freeItems.set([]); this.freeTotal.set(0); this.freeErr.set(false); this.hasMore.set(false); this.open.set(new Set());
+    this.iaPage = 1; this.wcNext = 0;
+    await this.fetchFree(id);
+  }
+  moreFree() { this.fetchFree(this.runId); }
+  private async fetchFree(id: number) {
+    this.freeLoading.set(true);
+    try {
+      if (this.src() === 'ia') {
+        const r = await searchArchive(this.fq, this.iaPage);
+        if (id !== this.runId) return;
+        this.freeItems.update(l => [...l, ...r.items]); this.freeTotal.set(r.total);
+        this.iaPage++; this.hasMore.set(r.items.length > 0 && this.freeItems().length < r.total);
+      } else {
+        if (this.wcNext === null) return;
+        const r = await searchCommons(this.fq, this.wcNext);
+        if (id !== this.runId) return;
+        this.freeItems.update(l => [...l, ...r.items]); this.freeTotal.set(this.freeItems().length);
+        this.wcNext = r.next; this.hasMore.set(r.next !== null);
+      }
+    } catch { if (id === this.runId) this.freeErr.set(true); }
+    finally { if (id === this.runId) this.freeLoading.set(false); }
+  }
+  private async tracksOf(it: FreeItem) {
+    if (it.tracks) return it.tracks;
+    const l = await archiveTracks(it);
+    this.freeItems.update(x => [...x]); // re-render with the loaded tracks
+    return l;
+  }
+  itemPlaying(it: FreeItem) { const c = this.player.current(); return !!c && c.id.startsWith(it.id + '#'); }
+  async playItem(it: FreeItem) {
+    if (this.itemPlaying(it)) { this.player.toggle(); return; }
+    this.opening.set(it.id);
+    try {
+      const l = await this.tracksOf(it);
+      if (l.length) this.player.play(l, 0);
+      else this.open.update(s => new Set(s).add(it.id));
+    } catch { this.freeErr.set(false); this.open.update(s => new Set(s).add(it.id)); }
+    finally { this.opening.set(''); }
+  }
+  async toggleItem(it: FreeItem) {
+    const s = new Set(this.open());
+    if (s.has(it.id)) { s.delete(it.id); this.open.set(s); return; }
+    s.add(it.id); this.open.set(s);
+    try { await this.tracksOf(it); } catch { it.tracks = []; this.freeItems.update(x => [...x]); }
+  }
+  playTrack(list: Track[], i: number) {
+    if (this.player.isCurrent(list[i])) this.player.toggle(); else this.player.play(list, i);
+  }
+  async save(tr: Track) {
+    this.saving.update(s => new Set(s).add(tr.id));
+    try { await downloadTrack(tr, this.native.isApp); }
+    finally { this.saving.update(s => { const n = new Set(s); n.delete(tr.id); return n; }); }
   }
 
   preview() { this.player.play([{ id: 'preview', title: this.f.title || 'Test', kind: this.f.kind, url: this.f.url.trim() }], 0); }
