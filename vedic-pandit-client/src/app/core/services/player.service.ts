@@ -16,6 +16,10 @@ export interface Track {
   /** Radio: country / language / bitrate line. */
   info?: string;
   favicon?: string;
+  /** Can be saved to the device. */
+  download?: boolean;
+  /** Source page (archive.org / Wikimedia Commons) for the licence credit. */
+  page?: string;
 }
 
 @Injectable({ providedIn: 'root' })
