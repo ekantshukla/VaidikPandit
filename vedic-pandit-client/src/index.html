@@ -18,12 +18,12 @@
   </script>
 </head>
 <body>
-  <app-root>
-    <!-- Shown while the app starts; Angular replaces it as soon as the first page is ready. -->
-    <div style="position:fixed;inset:0;background:#1D1736">
-      <img src="logo.svg" alt="" width="150" height="150" style="position:absolute;left:50%;top:50%;width:150px;height:150px;margin:-75px 0 0 -75px">
-      <img src="wordmark.png" alt="वैदिक पंडित · Vaidik Pandit" width="230" style="position:absolute;left:50%;top:50%;width:230px;height:auto;margin:92px 0 0 -115px">
-    </div>
-  </app-root>
+  <!-- Loading screen: logo, name and credit. Stays at least ~1.5 s in the Android app (see main.ts), so the name is seen after the system splash. -->
+  <div id="boot" style="position:fixed;inset:0;z-index:9999;background:#1D1736;transition:opacity .35s ease">
+    <img src="logo.svg" alt="" width="150" height="150" style="position:absolute;left:50%;top:50%;width:150px;height:150px;margin:-75px 0 0 -75px">
+    <img src="wordmark.png" alt="वैदिक पंडित · Vaidik Pandit" width="230" style="position:absolute;left:50%;top:50%;width:230px;height:auto;margin:92px 0 0 -115px">
+    <p style="position:absolute;left:0;right:0;bottom:calc(22px + env(safe-area-inset-bottom));margin:0;text-align:center;font:400 11px/1.4 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;letter-spacing:.04em;color:rgba(255,255,255,.55)">Crafted with <span style="color:#E3A21A">&#9829;</span> by Ekant Shukla</p>
+  </div>
+  <app-root></app-root>
 </body>
 </html>
