@@ -9,6 +9,7 @@ import { GetAppComponent } from './shared/get-app.component';
 import { NativeService } from './core/services/native.service';
 import { BotAvatarComponent } from './shared/bot-avatar.component';
 import { AccountService } from './core/services/account.service';
+import { PlayerService } from './core/services/player.service';
 
 @Component({
   selector: 'app-root',
@@ -37,6 +38,7 @@ import { AccountService } from './core/services/account.service';
         <a routerLink="/rashifal" routerLinkActive="on">{{ i18n.t('nav.rashifal') }}</a>
         <a routerLink="/muhurat" routerLinkActive="on">{{ i18n.t('nav.muhurat') }}</a>
         <a routerLink="/milan" routerLinkActive="on">{{ i18n.t('nav.milan') }}</a>
+        <a routerLink="/bhajan" routerLinkActive="on">{{ i18n.t('nav.bhajan') }}</a>
         <a routerLink="/learn" [class.on]="inMantra()">{{ i18n.t('nav.mantra') }}</a>
         <a routerLink="/granth" routerLinkActive="on">{{ i18n.t('nav.granth') }}</a>
         <a routerLink="/samagri" routerLinkActive="on">{{ i18n.t('nav.samagri') }}</a>
@@ -89,6 +91,27 @@ import { AccountService } from './core/services/account.service';
     </div>
   </footer>
 
+  <!-- Bhajan / Aarti mini player: stays while you move between pages -->
+  @if (player.current(); as cur) {
+    <div class="mini" role="region" [attr.aria-label]="i18n.t('nav.bhajan')">
+      <a routerLink="/bhajan" class="mart" aria-hidden="true" tabindex="-1">
+        @if (cur.favicon) { <img [src]="cur.favicon" alt="" (error)="$any($event.target).style.display = 'none'"> } @else { 🪔 }
+      </a>
+      <a routerLink="/bhajan" class="minfo">
+        <b>{{ i18n.prefersDevanagari() ? (cur.titleHi || cur.title) : cur.title }}</b>
+        <small>@if (player.error()) { ⚠ {{ i18n.t('mpError') }} } @else if (player.loading()) { {{ i18n.t('mpLoading') }} }
+          @else if (cur.live) { <i class="lv">● LIVE</i> {{ cur.info }} } @else { {{ clock(player.time()) }} / {{ clock(player.duration()) }} }</small>
+      </a>
+      <button type="button" class="mb" (click)="player.prev()" [attr.aria-label]="i18n.t('mpPrev')">⏮</button>
+      <button type="button" class="mb big" (click)="player.toggle()" [attr.aria-label]="player.playing() ? i18n.t('mpPause') : i18n.t('mpPlay')">{{ player.playing() ? '❚❚' : '▶' }}</button>
+      <button type="button" class="mb" (click)="player.next()" [attr.aria-label]="i18n.t('mpNext')">⏭</button>
+      <button type="button" class="mb x" (click)="player.stop()" [attr.aria-label]="i18n.t('closeChat')">✕</button>
+      @if (!cur.live && player.duration()) {
+        <input class="seek" type="range" min="0" [max]="player.duration()" step="1" [value]="player.time()" (change)="player.seek(+$any($event.target).value)" aria-label="Seek">
+      }
+    </div>
+  }
+
   <!-- Mobile: bottom tab bar replaces the top nav and the floating button -->
   <nav class="tabbar" aria-label="Main">
     <a routerLink="/" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: true }">
@@ -130,6 +153,8 @@ import { AccountService } from './core/services/account.service';
       <div class="sheet-grid">
         <a routerLink="/muhurat" routerLinkActive="on" (click)="more.set(false)">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg><span>{{ i18n.t('nav.muhurat') }}</span></a>
+        <a routerLink="/bhajan" routerLinkActive="on" (click)="more.set(false)">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg><span>{{ i18n.t('nav.bhajan') }}</span></a>
         <a routerLink="/milan" routerLinkActive="on" (click)="more.set(false)">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="14" r="5"/><circle cx="15" cy="14" r="5"/><path d="M10 4h4l-2 3z"/></svg><span>{{ i18n.t('nav.milan') }}</span></a>
         <a routerLink="/learn" [class.on]="inMantra()" (click)="more.set(false)">
@@ -154,7 +179,7 @@ import { AccountService } from './core/services/account.service';
 
   @if (!onAsk()) {
     @if (!drawer() && !more()) {
-      <button type="button" class="bot-fab" (click)="openBot()" [attr.aria-expanded]="drawer()" aria-controls="botwin" [attr.aria-label]="i18n.t('openChat')">
+      <button type="button" class="bot-fab" [class.lift]="!!player.current()" (click)="openBot()" [attr.aria-expanded]="drawer()" aria-controls="botwin" [attr.aria-label]="i18n.t('openChat')">
         @if (teaser()) { <span class="teaser" role="status">{{ i18n.t('botHello') }}</span> }
         @else { <span class="fab-label">✨ {{ i18n.t('askAiShort') }}</span> }
         <span class="ring"><vp-bot-avatar [size]="58" [animate]="true" /></span>
@@ -247,6 +272,24 @@ import { AccountService } from './core/services/account.service';
       box-shadow: 0 8px 22px rgba(29,23,54,.28); white-space: nowrap; border: 2px solid var(--haldi); }
     .bot-fab:hover .fab-label { background: #2A2250; }
 
+    .mini { position: fixed; z-index: 39; left: calc(16px + env(safe-area-inset-left, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); width: min(420px, calc(100vw - 32px));
+      display: flex; align-items: center; gap: 6px; padding: 8px 8px 12px 10px; border-radius: 16px; background: var(--ink); color: #fff;
+      box-shadow: 0 12px 30px rgba(29,23,54,.35); border: 1.5px solid rgba(227,162,26,.5); }
+    .mart { width: 40px; height: 40px; flex: none; border-radius: 10px; background: rgba(255,255,255,.08); display: grid; place-items: center; font-size: 1.3rem; text-decoration: none; overflow: hidden; }
+    .mart img { width: 100%; height: 100%; object-fit: cover; }
+    .minfo { flex: 1; min-width: 0; display: flex; flex-direction: column; text-decoration: none; color: inherit; line-height: 1.25; }
+    .minfo b { font-size: .92rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .minfo small { font-size: .74rem; color: rgba(246,244,250,.7); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .lv { font-style: normal; color: #FF6B6B; font-weight: 700; }
+    .mb { width: 34px; height: 34px; flex: none; border: 0; border-radius: 50%; background: transparent; color: #fff; cursor: pointer; font-size: .9rem; display: grid; place-items: center; }
+    .mb:hover { background: rgba(255,255,255,.1); }
+    .mb.big { width: 40px; height: 40px; background: var(--haldi); color: var(--ink); font-size: 1rem; }
+    .mb.x { color: rgba(246,244,250,.6); }
+    .seek { position: absolute; left: 14px; right: 14px; bottom: 3px; height: 4px; margin: 0; cursor: pointer; -webkit-appearance: none; appearance: none;
+      background: rgba(255,255,255,.18); border-radius: 2px; }
+    .seek::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--haldi); border: 0; }
+    .seek::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: var(--haldi); border: 0; }
+    .bot-fab.lift { bottom: calc(90px + env(safe-area-inset-bottom, 0px)); }
     .bot-fab { position: fixed; right: calc(18px + env(safe-area-inset-right, 0px)); bottom: calc(18px + env(safe-area-inset-bottom, 0px)); z-index: 40;
       border: 0; background: none; padding: 0; cursor: pointer; display: flex; align-items: center; gap: 10px; }
     .bot-fab .ring { display: block; border-radius: 50%; padding: 3px; background: linear-gradient(135deg, var(--haldi), var(--sindoor));
@@ -280,7 +323,7 @@ import { AccountService } from './core/services/account.service';
     .prefs .lang { max-width: 104px; }
     /* Desktop: one row, using the full screen width so the header never runs off the right edge.
        It gets more compact step by step on smaller laptops (incl. 125–150% Windows scaling),
-       and only below 1360px does the menu move to a second row. */
+       and only below 1800px does the menu move to a second row. */
     @media (min-width: 1025px) {
       .top .bar { max-width: 1760px; }
     }
@@ -294,7 +337,7 @@ import { AccountService } from './core/services/account.service';
       .desk a { padding: 7px 7px; font-size: .95rem; }
       .prefs { gap: 6px; } .prefs .lang { max-width: 96px; }
     }
-    @media (min-width: 1025px) and (max-width: 1359px) {
+    @media (min-width: 1025px) and (max-width: 1799px) {
       .bar { flex-wrap: wrap; row-gap: 0; padding-top: 6px; }
       .prefs { order: 1; margin-left: auto; } .acts { order: 2; }
       .desk { order: 3; flex: 1 1 100%; padding-bottom: 6px; margin-left: -8px; }
@@ -304,6 +347,8 @@ import { AccountService } from './core/services/account.service';
     @media (max-width: 1024px) {
       .desk { display: none; }
       .bot-fab { bottom: calc(78px + env(safe-area-inset-bottom, 0px)); right: calc(14px + env(safe-area-inset-right, 0px)); }
+      .bot-fab.lift { bottom: calc(144px + env(safe-area-inset-bottom, 0px)); }
+      .mini { left: 8px; right: 8px; width: auto; bottom: calc(70px + env(safe-area-inset-bottom, 0px)); }
       .botwin { left: 0; right: 0; bottom: 0; width: auto; height: 90vh; height: 90dvh; border-radius: 22px 22px 0 0; }
       .fab-label { font-size: .84rem; padding: 7px 12px; }
       .sheet-scrim { display: block; z-index: 41; }
@@ -403,9 +448,11 @@ export class AppComponent {
   openBot() { this.teaser.set(false); this.more.set(false); this.drawer.set(true); }
   readonly more = signal(false);
   /** The current page lives in the More sheet (the tab bar shows only Today, Panchang, Rashifal, Granth). */
-  inMore() { const u = this.url(); return ['/muhurat', '/milan', '/learn', '/mantra', '/samagri', '/dakshina', '/pandit', '/booking', '/account', '/admin'].some(p => u.startsWith(p)); }
+  inMore() { const u = this.url(); return ['/muhurat', '/milan', '/bhajan', '/learn', '/mantra', '/samagri', '/dakshina', '/pandit', '/booking', '/account', '/admin'].some(p => u.startsWith(p)); }
   inBooking() { const u = this.url(); return ['/pandit', '/booking'].some(p => u.startsWith(p)); }
   readonly acc = inject(AccountService);
+  readonly player = inject(PlayerService);
+  clock(s: number) { if (!s || !isFinite(s)) return '0:00'; const m = Math.floor(s / 60), x = Math.floor(s % 60); return `${m}:${String(x).padStart(2, '0')}`; }
   initial() { const n = this.acc.profile()?.name || this.acc.user()?.email || '?'; return n.trim()[0]?.toUpperCase() ?? '?'; }
 
   constructor() {
