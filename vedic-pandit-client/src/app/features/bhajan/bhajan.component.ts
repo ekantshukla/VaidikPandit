@@ -189,7 +189,7 @@ export class BhajanComponent {
   private loadAdded() { this.acc.listTracks().then(l => this.added.set(l)).catch(() => this.added.set([])); }
 
   readonly all = computed(() => [...this.added(), ...this.builtIn()]);
-  private readonly rqs = signal('');
+  readonly rqs = signal('');
   get rq() { return this.rqs(); } set rq(v: string) { this.rqs.set(v); }
   /** Search matches English or Hindi title, deity (English, Hindi or id), type and singer; Roman spelling variants like Shiv/Shiva, Jagdish/Jagadish. */
   readonly shown = computed(() => {
