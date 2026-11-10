@@ -23,7 +23,7 @@ import { LocationService, STATES } from '../../core/services/location.service';
         <button type="button" role="tab" [class.on]="mode() === 'up'" (click)="mode.set('up'); msg.set('')">{{ t.tx('Sign up', 'नया खाता') }}</button>
       </div>
 
-      <form class="panel stack" (ngSubmit)="submit()">
+      <form class="panel stack" novalidate (ngSubmit)="submit()">
         @if (mode() === 'up') {
           <div class="field"><span class="lbl">{{ t.tx('I am a', 'मैं हूँ') }}</span>
             <div class="roles">
@@ -31,8 +31,8 @@ import { LocationService, STATES } from '../../core/services/location.service';
               <button type="button" class="role" [class.on]="role === 'pandit'" (click)="role = 'pandit'"><span aria-hidden="true">🕉️</span><b>{{ t.tx('Pandit', 'पंडित / पुरोहित') }}</b><small>{{ t.tx('I perform pujas', 'मैं पूजा-पाठ कराता हूँ') }}</small></button>
             </div>
           </div>
-          <div class="field"><label for="nm">{{ t.tx('Full name', 'पूरा नाम') }}</label><input id="nm" class="input" name="name" [(ngModel)]="name" required autocomplete="name"></div>
-          <div class="field"><label for="ph">{{ t.tx('Mobile number', 'मोबाइल नंबर') }}</label>
+          <div class="field"><label for="nm">{{ t.tx('Full name', 'पूरा नाम') }}<span class="req" aria-hidden="true">*</span></label><input id="nm" class="input" name="name" [(ngModel)]="name" required autocomplete="name"></div>
+          <div class="field"><label for="ph">{{ t.tx('Mobile number', 'मोबाइल नंबर') }}<span class="req" aria-hidden="true">*</span></label>
               <vp-phone inputId="ph" [value]="phone" (valueChange)="phone = $event" [country]="country" /></div>
             <div class="field"><label for="cn">{{ t.tx('Country', 'देश') }}</label>
               <select id="cn" class="input" name="country" [(ngModel)]="country" (ngModelChange)="state = ''; city = ''">
@@ -60,11 +60,13 @@ import { LocationService, STATES } from '../../core/services/location.service';
               </div>
             }
         }
-        <div class="field"><label for="em">{{ t.tx('Email', 'ईमेल') }}</label><input id="em" class="input" name="email" [(ngModel)]="email" type="email" required autocomplete="email"></div>
+        <div class="field"><label for="em">{{ t.tx('Email', 'ईमेल') }}<span class="req" aria-hidden="true">*</span></label><input id="em" class="input" name="email" [(ngModel)]="email" type="email" required aria-required="true" autocomplete="email"></div>
         @if (mode() !== 'reset') {
-          <div class="field"><label for="pw">{{ t.tx('Password', 'पासवर्ड') }}</label>
-            <input id="pw" class="input" name="password" [(ngModel)]="password" type="password" required minlength="6" [attr.autocomplete]="mode() === 'up' ? 'new-password' : 'current-password'"></div>
+          <div class="field"><label for="pw">{{ t.tx('Password', 'पासवर्ड') }}<span class="req" aria-hidden="true">*</span></label>
+            <input id="pw" class="input" name="password" [(ngModel)]="password" type="password" required minlength="6" aria-required="true" [attr.autocomplete]="mode() === 'up' ? 'new-password' : 'current-password'">
+            @if (mode() === 'up') { <small class="hint">{{ t.tx('At least 6 characters', 'कम से कम 6 अक्षर') }}</small> }</div>
         }
+        <p class="reqnote"><span class="req" aria-hidden="true">*</span> {{ t.tx('Required', 'आवश्यक') }}</p>
         @if (msg()) { <p [class]="ok() ? 'okmsg' : 'err'" role="status">{{ msg() }}</p> }
         <button class="btn" type="submit" [disabled]="busy()">
           {{ busy() ? t.tx('Please wait…', 'कृपया रुकें…') : mode() === 'up' ? t.tx('Create account', 'खाता बनाएँ') : mode() === 'reset' ? t.tx('Send reset link', 'रीसेट लिंक भेजें') : t.tx('Log in', 'लॉग इन') }}
@@ -182,8 +184,8 @@ import { LocationService, STATES } from '../../core/services/location.service';
               </div>
               @if (emailOpen()) {
                 <div class="emchg stack">
-                  <input class="input" type="email" name="newEmail" [(ngModel)]="newEmail" autocomplete="email" [placeholder]="t.tx('New email address', 'नया ईमेल पता')">
-                  <input class="input" type="password" name="curPw" [(ngModel)]="curPw" autocomplete="current-password" [placeholder]="t.tx('Your current password', 'आपका वर्तमान पासवर्ड')">
+                  <input class="input" type="email" name="newEmail" [(ngModel)]="newEmail" required aria-required="true" autocomplete="email" [placeholder]="t.tx('New email address *', 'नया ईमेल पता *')">
+                  <input class="input" type="password" name="curPw" [(ngModel)]="curPw" required aria-required="true" autocomplete="current-password" [placeholder]="t.tx('Your current password *', 'आपका वर्तमान पासवर्ड *')">
                   <button type="button" class="btn quiet" (click)="changeEmail()" [disabled]="busy()">📧 {{ t.tx('Send verification link', 'सत्यापन लिंक भेजें') }}</button>
                   <p class="note">{{ t.tx('We will email a link to the new address. Your email changes only after you click that link; then log in again with the new email. Until then, keep using the old one.',
                     'हम नए पते पर एक लिंक भेजेंगे। उस लिंक को दबाने के बाद ही ईमेल बदलेगा; फिर नए ईमेल से लॉग इन करें। तब तक पुराना ईमेल ही काम करेगा।') }}</p>
@@ -301,6 +303,9 @@ export class AccountComponent {
   async submit() {
     this.say('');
     if (!this.email.trim()) return this.say(this.t.tx('Please enter your email.', 'ईमेल लिखें।'));
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(this.email.trim())) return this.say(this.t.tx('Please enter a valid email address.', 'कृपया सही ईमेल पता लिखें।'));
+    if (this.mode() !== 'reset' && !this.password) return this.say(this.t.tx('Please enter your password.', 'कृपया पासवर्ड लिखें।'));
+    if (this.mode() === 'up' && this.password.length < 6) return this.say(this.t.tx('Password must be at least 6 characters.', 'पासवर्ड कम से कम 6 अक्षर का होना चाहिए।'));
     this.busy.set(true);
     try {
       if (this.mode() === 'reset') {
@@ -317,10 +322,11 @@ export class AccountComponent {
       }
     } catch (e) {
       this.say(this.acc.errorText(e, this.t.hi()));
-    } finally { this.busy.set(false); this.password = ''; }
+    } finally { this.busy.set(false); }
   }
 
   private after() {
+    this.password = '';
     const next = this.route.snapshot.queryParamMap.get('next');
     if (next) this.router.navigateByUrl(next);
     else if (this.role === 'pandit' && this.mode() === 'up') this.router.navigate(['/pandit']);

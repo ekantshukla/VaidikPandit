@@ -78,9 +78,9 @@ type View = 'loading' | 'verify' | 'verified' | 'notme' | 'reset' | 'resetDone' 
           @if (email()) { <p class="email">{{ email() }}</p> }
           <form class="form" (ngSubmit)="reset()">
             <input class="input" type="password" name="p1" [(ngModel)]="p1" minlength="6" required autocomplete="new-password"
-              [placeholder]="t.tx('New password (at least 6 characters)', 'नया पासवर्ड (कम से कम 6 अक्षर)')">
+              [placeholder]="t.tx('New password * (at least 6 characters)', 'नया पासवर्ड * (कम से कम 6 अक्षर)')">
             <input class="input" type="password" name="p2" [(ngModel)]="p2" minlength="6" required autocomplete="new-password"
-              [placeholder]="t.tx('Type it again', 'फिर से लिखें')">
+              [placeholder]="t.tx('Type it again *', 'फिर से लिखें *')">
             <button class="btn ok" type="submit" [disabled]="busy()">{{ t.tx('Save new password', 'नया पासवर्ड सहेजें') }}</button>
           </form>
           <button type="button" class="btn link" (click)="view.set('notme')">✋ {{ t.tx("I didn't ask for this", 'मैंने यह नहीं माँगा') }}</button>
