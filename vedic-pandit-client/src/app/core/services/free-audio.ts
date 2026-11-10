@@ -65,8 +65,11 @@ export async function searchArchive(q: string, page = 1): Promise<{ items: FreeI
   const words = q.trim().replace(/[^\p{L}\p{N}\s]/gu, ' ').split(/\s+/).filter(Boolean).slice(0, 6);
   const topic = '(' + DEVOTIONAL.join(' OR ') + ')';
   const text = words.length ? '(' + words.map(w => `(title:${w} OR subject:${w} OR description:${w} OR creator:${w})`).join(' AND ') + ') AND ' + topic : topic;
-  const query = `${text} AND mediatype:audio AND (licenseurl:*creativecommons.org* OR licenseurl:*publicdomain*)`;
-  const p = new URLSearchParams({ q: query, rows: '40', page: String(page), output: 'json' });
+  return iaQuery(`${text} AND ${IA_FREE}`, 40, page);
+}
+const IA_FREE = 'mediatype:audio AND (licenseurl:*creativecommons.org* OR licenseurl:*publicdomain*)';
+async function iaQuery(query: string, rows: number, page: number): Promise<{ items: FreeItem[]; total: number }> {
+  const p = new URLSearchParams({ q: query, rows: String(rows), page: String(page), output: 'json' });
   ['identifier', 'title', 'creator', 'licenseurl', 'subject'].forEach(f => p.append('fl[]', f));
   p.append('sort[]', 'downloads desc');
   const r = await fetch(`${IA}/advancedsearch.php?${p}`);
@@ -124,9 +127,11 @@ const WC = 'https://commons.wikimedia.org/w/api.php';
 /** Search audio files on Wikimedia Commons. `offset` comes from the previous call (null = no more). */
 export async function searchCommons(q: string, offset = 0): Promise<{ items: FreeItem[]; next: number | null }> {
   const words = q.trim().replace(/[^\p{L}\p{N}\s]/gu, ' ').trim();
-  const search = (words ? words + ' ' : '') + '(' + DEVOTIONAL.slice(0, 12).join(' OR ') + ') filetype:audio';
+  return wcQuery((words ? words + ' ' : '') + '(' + DEVOTIONAL.slice(0, 12).join(' OR ') + ') filetype:audio', 40, offset);
+}
+async function wcQuery(search: string, limit: number, offset: number): Promise<{ items: FreeItem[]; next: number | null }> {
   const p = new URLSearchParams({
-    action: 'query', format: 'json', origin: '*', generator: 'search', gsrnamespace: '6', gsrlimit: '40',
+    action: 'query', format: 'json', origin: '*', generator: 'search', gsrnamespace: '6', gsrlimit: String(limit),
     gsrsearch: search, gsroffset: String(offset), prop: 'videoinfo', viprop: 'url|mime|extmetadata|derivatives',
   });
   const r = await fetch(`${WC}?${p}`);
@@ -152,6 +157,32 @@ export async function searchCommons(q: string, offset = 0): Promise<{ items: Fre
     });
   }
   return { items, next: j?.continue?.gsroffset ?? null };
+}
+
+// ---------------------------------------------------------------- recordings of one mantra
+const GENERIC = new Set(['mantra', 'mantram', 'stotram', 'stotra', 'stotras', 'shri', 'sri', 'the', 'of', 'and', 'aarti', 'chalisa', 'path', 'paath', 'ashtakam']);
+const fold = (s: string) => s.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s]/g, ' ')
+  .replace(/aa/g, 'a').replace(/ee/g, 'i').replace(/oo/g, 'u').replace(/sh/g, 's').replace(/([a-z])\1/g, '$1').replace(/\s+/g, ' ').trim();
+/**
+ * Real recordings of a mantra / stotra by name, from Wikimedia Commons and Internet Archive (free licences only).
+ * Only results whose title contains every key word of the name are kept, e.g. "Gayatri", or "Hanuman" + "Chalisa".
+ */
+export async function findRecordings(name: string): Promise<FreeItem[]> {
+  const all = name.replace(/\(.*?\)/g, ' ').replace(/[^\p{L}\p{N}\s]/gu, ' ').split(/\s+/).filter(w => w.length > 1);
+  let key = all.filter(w => !GENERIC.has(w.toLowerCase()));
+  if (!key.length) key = all;
+  key = key.slice(0, 3);
+  if (!key.length) return [];
+  // Keep the generic word too when it tells texts apart (Hanuman *Chalisa* vs any Hanuman mantra)
+  const kindWord = all.find(w => /chalisa|aarti|ashtakam|sahasranam/i.test(w));
+  const must = [...key, ...(kindWord ? [kindWord] : [])].map(fold);
+  const ok = (it: FreeItem) => { const t = fold(it.title); return must.every(w => t.includes(w)); };
+  const [wc, ia] = await Promise.allSettled([
+    wcQuery(key.map(w => `intitle:${w}`).join(' ') + ' filetype:audio', 10, 0),
+    iaQuery('(' + key.map(w => `title:${w}`).join(' AND ') + ') AND ' + IA_FREE, 10, 1),
+  ]);
+  const list = [...(wc.status === 'fulfilled' ? wc.value.items : []), ...(ia.status === 'fulfilled' ? ia.value.items : [])];
+  return list.filter(ok).slice(0, 6);
 }
 
 // ---------------------------------------------------------------- download

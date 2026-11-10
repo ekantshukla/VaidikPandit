@@ -5,6 +5,8 @@ import { I18nService } from '../core/services/i18n.service';
 import { SanskritVoice, SpeechService } from '../core/services/speech.service';
 import { NativeService } from '../core/services/native.service';
 import { SCRIPT_FOR_LANG, Script, toIast, toScript } from '../core/services/transliterate';
+import { FreeItem, archiveTracks, findRecordings } from '../core/services/free-audio';
+import { PlayerService } from '../core/services/player.service';
 
 interface Word { w: string; s: number; e: number; l: number; }
 
@@ -96,11 +98,30 @@ function generateTiming(text: string): Word[] {
       }
       @if (mantra.audioUrl) { <audio #audio [src]="mantra.audioUrl" preload="metadata" (ended)="onAudioEnded()"></audio> }
     </div>
-    @if (mantra.audioUrl && mantra.audioCredit) { <p class="vnote rec">🎙 {{ mantra.audioCredit }}</p> }
+    @if (mantra.audioUrl && mantra.audioCredit) {
+      @if (isAi()) { <p class="vnote ai">🤖 {{ i18n.prefersDevanagari() ? 'AI स्वर (AI4Bharat) — कंप्यूटर द्वारा बना; पंडित जी की रिकॉर्डिंग मिलने पर बदल दिया जाएगा।' : mantra.audioCredit }}</p> }
+      @else { <p class="vnote rec">🎙 {{ mantra.audioCredit }}</p> }
+    }
     @if (mantra.syncText === false) { <p class="vnote">{{ i18n.t('textComing') }}</p> }
     @if (!mantra.audioUrl) {
       @if (voice(); as v) { <p class="vnote">{{ i18n.f('voiceIs', { v: v.name }) }}</p> }
       @else if (voiceChecked() && !compact) { <p class="vnote">{{ native.isApp ? i18n.t('voiceNone') : i18n.t('voiceNoneWeb') }}</p> }
+    }
+
+    @if (!compact && (recs().length || recsLoading())) {
+      <section class="recs">
+        <h4>🎧 {{ i18n.prefersDevanagari() ? 'असली रिकॉर्डिंग (मुक्त संग्रह से)' : 'Real recordings (free libraries)' }}</h4>
+        @if (recsLoading()) { <p class="vnote">{{ i18n.t('loading') }}</p> }
+        <ul>
+          @for (r of recs(); track r.id) {
+            <li>
+              <button type="button" class="rp" (click)="playRec(r)" [disabled]="opening() === r.id" [attr.aria-label]="i18n.t('play')">{{ opening() === r.id ? '…' : recPlaying(r) && audio.playing() ? '❚❚' : '▶' }}</button>
+              <span class="rt"><b>{{ r.title }}</b><small><a [href]="r.page" target="_blank" rel="noopener">{{ r.source === 'ia' ? 'archive.org' : 'Wikimedia Commons' }}</a> · {{ r.license }}@if (r.creator) { · {{ r.creator }} }</small></span>
+            </li>
+          }
+        </ul>
+        <p class="vnote">{{ i18n.prefersDevanagari() ? 'ये रिकॉर्डिंग मुक्त लाइसेंस वाले संग्रहों से हैं; उच्चारण व पाठ अलग हो सकता है।' : 'From freely licensed collections; the reciter\'s style and text may differ from the words above.' }}</p>
+      </section>
     }
 
     @if (!compact && !isLong()) {
@@ -165,6 +186,15 @@ function generateTiming(text: string): Word[] {
     .tempo input { accent-color: var(--sindoor); }
     .vnote { font-size: .8rem; color: var(--faint); margin: 8px 0 0; max-width: 70ch; }
     .vnote.rec { color: var(--tulsi); font-weight: 600; }
+    .vnote.ai { color: var(--muted); font-weight: 600; }
+    .recs { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 12px; }
+    .recs h4 { margin: 0 0 8px; font-size: 1rem; }
+    .recs ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+    .recs li { display: flex; gap: 10px; align-items: center; min-width: 0; }
+    .rp { width: 36px; height: 36px; flex: none; border-radius: 50%; border: 0; background: var(--ink); color: #fff; cursor: pointer; font-size: .85rem; }
+    .rt { display: flex; flex-direction: column; min-width: 0; }
+    .rt b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .rt small { color: var(--muted); } .rt a { color: var(--sindoor); text-decoration: none; }
     .japa { display: flex; align-items: center; gap: 16px; margin-top: 18px; }
     .japa p { margin: 0; }
     .bead { position: relative; width: 92px; height: 92px; border: 0; background: none; padding: 0; cursor: pointer; border-radius: 50%; }
@@ -194,6 +224,11 @@ export class MantraPlayerComponent implements OnChanges, OnDestroy {
   readonly i18n = inject(I18nService);
   readonly speech = inject(SpeechService);
   readonly native = inject(NativeService);
+  readonly audio = inject(PlayerService);
+  readonly recs = signal<FreeItem[]>([]);
+  readonly recsLoading = signal(false);
+  readonly opening = signal('');
+  private recRun = 0;
   readonly scripts = SCRIPTS;
   readonly script = signal<Script>(SCRIPT_FOR_LANG[this.i18n.lang()] ?? 'deva');
   readonly verses = signal<string[]>([]);
@@ -239,6 +274,27 @@ export class MantraPlayerComponent implements OnChanges, OnDestroy {
     const v = this.mantra.sanskrit.split(/\n\s*\n/).map(x => x.trim()).filter(Boolean);
     this.verses.set(v.length ? v : [this.mantra.sanskrit]);
     this.load(0);
+    this.loadRecordings();
+  }
+
+  readonly isAi = () => (this.mantra?.audioCredit ?? '').startsWith('AI voice');
+
+  /** Real recordings of this text from Wikimedia Commons / Internet Archive (not for a human recording we already have). */
+  private loadRecordings() {
+    const run = ++this.recRun;
+    this.recs.set([]);
+    if (this.compact || !this.mantra || (this.mantra.audioUrl && !this.isAi())) return;
+    this.recsLoading.set(true);
+    findRecordings(this.mantra.name).then(l => { if (run === this.recRun) this.recs.set(l); })
+      .catch(() => undefined).finally(() => { if (run === this.recRun) this.recsLoading.set(false); });
+  }
+  recPlaying(r: FreeItem) { const c = this.audio.current(); return !!c && c.id.startsWith(r.id + '#'); }
+  async playRec(r: FreeItem) {
+    if (this.recPlaying(r)) { this.audio.toggle(); return; }
+    this.pause(); this.stopAll();
+    this.opening.set(r.id);
+    try { const l = r.tracks ?? await archiveTracks(r); if (l.length) this.audio.play(l, 0); }
+    catch { /* unreachable */ } finally { this.opening.set(''); }
   }
   ngOnDestroy() { this.stopAll(); }
 
