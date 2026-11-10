@@ -1,0 +1,85 @@
+# Makes natural AI voices for the mantras (AI4Bharat Indic Parler-TTS, open source) and adds them to the site and app.
+# Run it from the Actions tab -> "Make AI mantra voices" -> Run workflow. It can take a few hours the first time;
+# if it stops at the time limit, just run it again and it continues with the mantras still left.
+# Real recordings (e.g. a Pandit ji's voice, see AUDIO.md) are never replaced.
+#
+# If the model download fails with 401/403: open https://huggingface.co/ai4bharat/indic-parler-tts, sign in,
+# accept the terms if asked, create a free "Read" token (huggingface.co/settings/tokens) and save it as the
+# repository secret HF_TOKEN (Settings -> Secrets and variables -> Actions -> New repository secret).
+name: Make AI mantra voices
+
+on:
+  workflow_dispatch:
+    inputs:
+      slugs:
+        description: 'Only these mantras (comma-separated slugs, e.g. gayatri,mahamrityunjaya). Empty = all without a voice.'
+        required: false
+        default: ''
+      minutes:
+        description: 'Stop starting new mantras after this many minutes'
+        required: false
+        default: '300'
+      redo:
+        description: 'Make the AI voice again even where one exists (yes/no)'
+        required: false
+        default: 'no'
+
+permissions:
+  contents: write   # to commit the audio files
+  actions: write    # to start the website and app builds afterwards
+
+concurrency:
+  group: ai-voice
+  cancel-in-progress: false
+
+jobs:
+  voice:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      HF_HUB_DISABLE_PROGRESS_BARS: '1'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install ffmpeg and the model's libraries (CPU)
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+          pip install --quiet torch --index-url https://download.pytorch.org/whl/cpu
+          pip install --quiet git+https://github.com/huggingface/parler-tts.git soundfile numpy
+
+      - name: Cache the model
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: indic-parler-tts-v1
+
+      - name: Make the voices
+        run: |
+          python3 tools/ai_voice.py --minutes "${{ github.event.inputs.minutes }}" --slugs "${{ github.event.inputs.slugs }}" \
+            ${{ github.event.inputs.redo == 'yes' && '--redo' || '' }}
+          python3 tools/build_client_data.py
+
+      - name: Save to the repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add vedic-pandit-client/public/audio src/VedicPandit.WebAPI/SeedData vedic-pandit-client/src/app/core/data/mantras.json
+          if git diff --cached --quiet; then echo "Nothing new"; exit 0; fi
+          git commit -m "AI voices for mantras (Indic Parler-TTS)"
+          git pull --rebase origin main
+          git push
+          echo "PUSHED=1" >> "$GITHUB_ENV"
+
+      # A push made by this workflow does not start other workflows by itself, so start them here.
+      - name: Rebuild the website and the app
+        if: env.PUSHED == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run deploy.yml --ref main
+          gh workflow run android.yml --ref main
