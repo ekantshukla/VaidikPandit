@@ -50,6 +50,22 @@ service cloud.firestore {
         && okText(request.resource.data.phone, 20) && okText(request.resource.data.whatsapp, 20);
     }
 
+    // Bhajan / Aarti recordings: everyone can listen; only the admin adds or removes them.
+    match /tracks/{id} {
+      allow read: if true;
+      allow create, update: if isAdmin() && okText(request.resource.data.title, 120) && okText(request.resource.data.url, 600)
+        && request.resource.data.url.matches('^(https://|audio/).*');
+      allow delete: if isAdmin();
+    }
+
+    // Puja Paddhati written by the admin: everyone can read; only the admin adds or removes.
+    match /paddhati/{id} {
+      allow read: if true;
+      allow create, update: if isAdmin() && okText(request.resource.data.en, 160) && request.resource.data.steps is list
+        && request.resource.data.steps.size() <= 60;
+      allow delete: if isAdmin();
+    }
+
     // Bookings are visible only to the devotee, the Pandit and the admin.
     match /bookings/{id} {
       function isUser() { return signedIn() && resource.data.userId == me(); }

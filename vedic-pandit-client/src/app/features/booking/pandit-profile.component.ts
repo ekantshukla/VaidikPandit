@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AccountService, Booking, Pandit } from '../../core/services/account.service';
 import { STATES } from '../../core/services/location.service';
-import { BOOKING_CSS, BookingOffComponent, FaceComponent, PUJAS, SAMPRADAYAS, SPOKEN, useTx } from './booking-ui';
+import { BOOKING_CSS, BookingOffComponent, FaceComponent, PUJAS, REGIONS, SAMPRADAYAS, SPOKEN, useTx } from './booking-ui';
 
 /** One Pandit's public profile and the booking request form. */
 @Component({
@@ -34,6 +34,7 @@ import { BOOKING_CSS, BookingOffComponent, FaceComponent, PUJAS, SAMPRADAYAS, SP
         <div><dt>{{ t.tx('Experience', 'अनुभव') }}</dt><dd>{{ p.experience }} {{ t.tx('years', 'वर्ष') }}</dd></div>
         @if (p.sampradaya) { <div><dt>{{ t.tx('Tradition', 'संप्रदाय') }}</dt><dd>{{ t.name(sampradayas, p.sampradaya) }}</dd></div> }
         <div><dt>{{ t.tx('Languages', 'भाषाएँ') }}</dt><dd>{{ langs(p) }}</dd></div>
+        @if (p.traditions.length) { <div><dt>{{ t.tx('Puja paddhati', 'पूजा पद्धति') }}</dt><dd>{{ regionsText(p) }}</dd></div> }
         @if (p.fee) { <div><dt>{{ t.tx('Dakshina', 'दक्षिणा') }}</dt><dd>{{ p.fee }}</dd></div> }
       </dl>
       @if (p.about) { <p class="about">{{ p.about }}</p> }
@@ -122,6 +123,7 @@ export class PanditProfileComponent {
   }
 
   stateName(n: string) { const s = STATES.find(x => x.n === n); return s ? (this.t.hi() ? s.h : s.n) : n; }
+  regionsText(p: Pandit) { return (p.traditions ?? []).map(r => this.t.name(REGIONS, r)).join(', '); }
   langs(p: Pandit) { return p.languages.map(l => this.t.name(SPOKEN, l)).join(', '); }
 
   async book(p: Pandit) {

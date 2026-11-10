@@ -4,6 +4,7 @@
 import { Injectable, computed, signal } from '@angular/core';
 import { ADMIN_EMAILS, FIREBASE_CONFIG, WEBSITE_URL } from '../app-info';
 import type { Track } from './player.service';
+import type { Paddhati } from '../data/paddhati';
 
 const SDK = 'https://www.gstatic.com/firebasejs/10.14.1/';
 // Keep the bundler from trying to resolve the CDN URLs
@@ -16,7 +17,9 @@ export type BookingStatus = 'requested' | 'accepted' | 'declined' | 'cancelled' 
 export interface Profile { uid: string; name: string; email: string; phone: string; city: string; state?: string; country?: string; role: Role; photo?: string; createdAt?: number; }
 export interface Pandit {
   uid: string; name: string; photo: string; phone: string; whatsapp: string; state: string; city: string;
-  languages: string[]; sampradaya: string; experience: number; pujas: string[]; fee: string; about: string;
+  languages: string[]; sampradaya: string;
+  /** Regional puja traditions he follows (see REGIONS in booking-ui), e.g. 'Maithil', 'Tamil'. */
+  traditions: string[]; experience: number; pujas: string[]; fee: string; about: string;
   online: boolean; status: PanditStatus; rejectReason?: string; createdAt?: number; approvedAt?: number;
 }
 export interface Booking {
@@ -135,7 +138,7 @@ export class AccountService {
 
   private toPandit(d: any): Pandit {
     const x = d.data();
-    return { uid: d.id, phone: '', whatsapp: '', languages: [], pujas: [], ...x, createdAt: ts(x.createdAt), approvedAt: ts(x.approvedAt) } as Pandit;
+    return { uid: d.id, phone: '', whatsapp: '', languages: [], pujas: [], traditions: [], ...x, createdAt: ts(x.createdAt), approvedAt: ts(x.approvedAt) } as Pandit;
   }
   /** Phone numbers live in panditPrivate/{uid}, readable only by that Pandit and the admin. */
   private async withPrivate(p: Pandit): Promise<Pandit> {
@@ -299,6 +302,22 @@ export class AccountService {
   async deleteTrack(id: string) {
     const { db, F } = await this.init();
     await F.deleteDoc(F.doc(db, 'tracks', id.replace(/^fs:/, '')));
+  }
+
+  // ---------------- Puja Paddhati added by the admin ----------------
+  async listPaddhati(): Promise<Paddhati[]> {
+    const { db, F } = await this.init();
+    const snap = await F.getDocs(F.collection(db, 'paddhati'));
+    return snap.docs.map((d: any) => ({ ...d.data(), id: 'fs-' + d.id, custom: true, createdAt: ts(d.data().createdAt) }) as Paddhati & { createdAt?: number })
+      .sort((a: any, b: any) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
+  }
+  async addPaddhati(p: Omit<Paddhati, 'id' | 'custom'>) {
+    const { db, F } = await this.init();
+    await F.addDoc(F.collection(db, 'paddhati'), { ...JSON.parse(JSON.stringify(p)), createdAt: F.serverTimestamp() });
+  }
+  async deletePaddhati(id: string) {
+    const { db, F } = await this.init();
+    await F.deleteDoc(F.doc(db, 'paddhati', id.replace(/^fs-/, '')));
   }
 
   // ---------------- bookings ----------------

@@ -88,6 +88,7 @@ interface Upcoming { date: string; names: string[]; }
         <a routerLink="/rashifal"><b>{{ i18n.t('rashifalTitle') }}</b><span>{{ i18n.t('rashifalIntro') }}</span></a>
         <a routerLink="/muhurat"><b>{{ i18n.t('muhuratTitle') }}</b><span>{{ i18n.t('muhuratIntro') }}</span></a>
         <a routerLink="/milan"><b>💍 {{ i18n.t('nav.milan') }}</b><span>{{ i18n.t('milanSub') }}</span></a>
+        <a routerLink="/paddhati"><b>📿 {{ i18n.t('nav.paddhati') }}</b><span>{{ i18n.prefersDevanagari() ? 'नित्य पूजा, देवता, पर्व, क्षेत्रीय व संप्रदाय अनुसार क्रमवार पूजा विधि मंत्रों सहित।' : 'Step-by-step puja vidhi with mantras: daily, by deity, festivals, regional and sampradaya.' }}</span></a>
         <a routerLink="/bhajan"><b>🪔 {{ i18n.t('nav.bhajan') }}</b><span>{{ i18n.t('bhajanSub') }}</span></a>
         <a routerLink="/mantra"><b>{{ i18n.t('mantraTitle') }}</b><span>{{ i18n.t('mantraIntro') }}</span></a>
         <a routerLink="/granth"><b>{{ i18n.t('granthTitle') }}</b><span>{{ i18n.t('libIntro') }}</span></a>

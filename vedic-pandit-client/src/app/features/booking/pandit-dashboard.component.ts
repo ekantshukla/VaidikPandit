@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AccountService, Booking, Pandit, photoToDataUrl } from '../../core/services/account.service';
 import { STATES } from '../../core/services/location.service';
-import { BOOKING_CSS, BookingOffComponent, FaceComponent, PUJAS, PhoneInputComponent, SAMPRADAYAS, SPOKEN, bookingStatusText, fmtDate, panditStatusText, useTx, validPhone } from './booking-ui';
+import { BOOKING_CSS, BookingOffComponent, FaceComponent, PUJAS, PhoneInputComponent, REGIONS, SAMPRADAYAS, SPOKEN, bookingStatusText, fmtDate, panditStatusText, useTx, validPhone } from './booking-ui';
 
 type Form = Omit<Pandit, 'uid' | 'status' | 'createdAt' | 'approvedAt' | 'rejectReason'>;
 
@@ -68,6 +68,8 @@ type Form = Omit<Pandit, 'uid' | 'status' | 'createdAt' | 'approvedAt' | 'reject
         </div>
         <div class="field"><span class="lbl">{{ t.tx('Languages you perform in', 'किन भाषाओं में पूजा कराते हैं') }}</span>
           <div class="chips">@for (l of spoken; track l[0]) { <button type="button" class="chip" [class.on]="f.languages.includes(l[0])" (click)="toggle(f.languages, l[0])">{{ t.pick(l) }}</button> }</div></div>
+        <div class="field"><span class="lbl">{{ t.tx('Regional puja tradition you follow', 'आप किस क्षेत्र की पूजा-पद्धति से पूजा कराते हैं') }}</span>
+          <div class="chips">@for (r of regions; track r[0]) { <button type="button" class="chip" [class.on]="f.traditions.includes(r[0])" (click)="toggle(f.traditions, r[0])">{{ t.pick(r) }}</button> }</div></div>
         <div class="field"><span class="lbl">{{ t.tx('Pujas you perform', 'आप कौन-सी पूजाएँ कराते हैं') }}</span>
           <div class="chips">@for (p of pujas; track p[0]) { <button type="button" class="chip" [class.on]="f.pujas.includes(p[0])" (click)="toggle(f.pujas, p[0])">{{ t.pick(p) }}</button> }</div></div>
         <div class="field"><label for="fee">{{ t.tx('Dakshina (optional)', 'दक्षिणा (वैकल्पिक)') }}</label>
@@ -163,6 +165,7 @@ export class PanditDashboardComponent {
   readonly pujas = PUJAS;
   readonly spoken = SPOKEN;
   readonly sampradayas = SAMPRADAYAS;
+  readonly regions = REGIONS;
   readonly tabs: ['new' | 'upcoming' | 'past', string, string][] = [['new', 'New', 'नए'], ['upcoming', 'Confirmed', 'पक्की'], ['past', 'Past', 'पुरानी']];
   readonly tab = signal<'new' | 'upcoming' | 'past'>('new');
   readonly editing = signal(false);
@@ -187,7 +190,7 @@ export class PanditDashboardComponent {
   }
 
   private blank(): Form {
-    return { name: '', photo: '', phone: '', whatsapp: '', state: '', city: '', languages: ['Sanskrit', 'Hindi'], sampradaya: '', experience: 0, pujas: [], fee: '', about: '', online: true };
+    return { name: '', photo: '', phone: '', whatsapp: '', state: '', city: '', languages: ['Sanskrit', 'Hindi'], sampradaya: '', traditions: [] as string[], experience: 0, pujas: [], fee: '', about: '', online: true };
   }
   readonly districts = computed(() => (STATES.find(s => s.n === this.stateSig())?.d ?? []).map(d => d[0]));
   readonly groups = computed(() => {
@@ -208,7 +211,7 @@ export class PanditDashboardComponent {
   startEdit() {
     const mp = this.acc.myPandit(); if (!mp) return;
     const { uid, status, createdAt, approvedAt, rejectReason, ...rest } = mp;
-    this.f = { ...this.blank(), ...rest, languages: [...(rest.languages ?? [])], pujas: [...(rest.pujas ?? [])] };
+    this.f = { ...this.blank(), ...rest, languages: [...(rest.languages ?? [])], pujas: [...(rest.pujas ?? [])], traditions: [...(rest.traditions ?? [])] };
     this.stateSig.set(this.f.state);
     this.editing.set(true); this.msg.set('');
   }

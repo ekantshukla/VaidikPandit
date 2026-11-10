@@ -22,10 +22,24 @@ export const SPOKEN: [string, string][] = [
   ['Sanskrit', 'संस्कृत'], ['Hindi', 'हिंदी'], ['English', 'अंग्रेज़ी'], ['Marathi', 'मराठी'], ['Gujarati', 'गुजराती'],
   ['Bengali', 'बांग्ला'], ['Odia', 'ओड़िया'], ['Kannada', 'कन्नड़'], ['Tamil', 'तमिल'], ['Telugu', 'तेलुगु'],
   ['Malayalam', 'मलयालम'], ['Punjabi', 'पंजाबी'], ['Maithili', 'मैथिली'], ['Bhojpuri', 'भोजपुरी'], ['Nepali', 'नेपाली'],
+  ['Assamese', 'असमिया'], ['Konkani', 'कोंकणी'], ['Tulu', 'तुलु'], ['Sindhi', 'सिंधी'], ['Kashmiri', 'कश्मीरी'], ['Rajasthani', 'राजस्थानी'],
 ];
 
+/** Regional puja traditions (paddhati): how pujas, vivah and sanskars are done differs by region. [English, Hindi] */
+export const REGIONS: [string, string][] = [
+  ['North Indian', 'उत्तर भारतीय'], ['Maithil (Mithila)', 'मैथिल (मिथिला)'], ['Bengali', 'बंगाली'], ['Odia', 'ओड़िया'], ['Assamese', 'असमिया'],
+  ['Marathi', 'मराठी'], ['Gujarati', 'गुजराती'], ['Rajasthani / Marwari', 'राजस्थानी / मारवाड़ी'], ['Punjabi', 'पंजाबी'],
+  ['Pahadi (Garhwali / Kumaoni / Himachali)', 'पहाड़ी (गढ़वाली / कुमाऊँनी / हिमाचली)'], ['Kashmiri', 'कश्मीरी'], ['Sindhi', 'सिंधी'],
+  ['Kannada', 'कन्नड़'], ['Tulu / Udupi', 'तुलु / उडुपी'], ['Konkani / Goan', 'कोंकणी / गोवा'], ['Tamil', 'तमिल'], ['Telugu', 'तेलुगु'],
+  ['Malayali (Kerala)', 'मलयाली (केरल)'], ['Nepali', 'नेपाली'],
+];
+/** The app language → the spoken language a devotee most likely wants. */
+export const LANG_SPOKEN: Record<string, string> = { hi: 'Hindi', en: 'English', mr: 'Marathi', gu: 'Gujarati', bn: 'Bengali', kn: 'Kannada', ta: 'Tamil', te: 'Telugu' };
+
 export const SAMPRADAYAS: [string, string][] = [
-  ['Smarta', 'स्मार्त'], ['Vaishnava', 'वैष्णव'], ['Shaiva', 'शैव'], ['Shakta', 'शाक्त'], ['Arya Samaj', 'आर्य समाज'], ['Other', 'अन्य'],
+  ['Smarta', 'स्मार्त'], ['Vaishnava', 'वैष्णव'], ['Shaiva', 'शैव'], ['Shakta', 'शाक्त'], ['Madhva', 'माध्व'], ['Sri Vaishnava', 'श्रीवैष्णव'],
+  ['Pushtimarg', 'पुष्टिमार्ग'], ['Gaudiya Vaishnava', 'गौड़ीय वैष्णव'], ['Swaminarayan', 'स्वामीनारायण'], ['Lingayat / Veerashaiva', 'लिंगायत / वीरशैव'],
+  ['Arya Samaj', 'आर्य समाज'], ['Other', 'अन्य'],
 ];
 
 /** English or Hindi wording for the booking pages. Devanagari readers (hi, mr) get Hindi, everyone else English. */

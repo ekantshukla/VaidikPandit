@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { I18nService } from '../../core/services/i18n.service';
 import { SAMAGRI } from '../../core/data/samagri';
 
@@ -72,7 +73,9 @@ export class SamagriComponent {
   readonly i18n = inject(I18nService);
   readonly list = SAMAGRI;
   readonly hi = computed(() => this.i18n.prefersDevanagari());
-  readonly curId = signal(SAMAGRI[0].id);
+  private route = inject(ActivatedRoute);
+  /** ?p=<id> opens that list directly (linked from Puja Paddhati). */
+  readonly curId = signal(SAMAGRI.some(x => x.id === this.route.snapshot.queryParamMap.get('p')) ? this.route.snapshot.queryParamMap.get('p')! : SAMAGRI[0].id);
   readonly cur = computed(() => SAMAGRI.find(p => p.id === this.curId()) ?? SAMAGRI[0]);
   readonly ticks = signal<Record<string, number[]>>(this.load());
   readonly copied = signal(false);

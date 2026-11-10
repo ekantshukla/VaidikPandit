@@ -38,6 +38,7 @@ import { PlayerService } from './core/services/player.service';
         <a routerLink="/rashifal" routerLinkActive="on">{{ i18n.t('nav.rashifal') }}</a>
         <a routerLink="/muhurat" routerLinkActive="on">{{ i18n.t('nav.muhurat') }}</a>
         <a routerLink="/milan" routerLinkActive="on">{{ i18n.t('nav.milan') }}</a>
+        <a routerLink="/paddhati" routerLinkActive="on">{{ i18n.t('nav.paddhati') }}</a>
         <a routerLink="/bhajan" routerLinkActive="on">{{ i18n.t('nav.bhajan') }}</a>
         <a routerLink="/learn" [class.on]="inMantra()">{{ i18n.t('nav.mantra') }}</a>
         <a routerLink="/granth" routerLinkActive="on">{{ i18n.t('nav.granth') }}</a>
@@ -149,6 +150,8 @@ import { PlayerService } from './core/services/player.service';
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg><span>{{ i18n.t('nav.muhurat') }}</span></a>
         <a routerLink="/bhajan" routerLinkActive="on" (click)="more.set(false)">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg><span>{{ i18n.t('nav.bhajan') }}</span></a>
+        <a routerLink="/paddhati" routerLinkActive="on" (click)="more.set(false)">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c1.6 2.2 2.4 3.9 2.4 5.2A2.4 2.4 0 0 1 12 10.6a2.4 2.4 0 0 1-2.4-2.4C9.6 6.9 10.4 5.2 12 3Z"/><path d="M5 21h14M7 21v-4h10v4M9 17v-3h6v3"/></svg><span>{{ i18n.t('nav.paddhati') }}</span></a>
         <a routerLink="/milan" routerLinkActive="on" (click)="more.set(false)">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="14" r="5"/><circle cx="15" cy="14" r="5"/><path d="M10 4h4l-2 3z"/></svg><span>{{ i18n.t('nav.milan') }}</span></a>
         <a routerLink="/learn" [class.on]="inMantra()" (click)="more.set(false)">
@@ -322,8 +325,8 @@ import { PlayerService } from './core/services/player.service';
       .desk { justify-content: center; gap: 2px; }
       .desk a { padding: 8px 11px; }
     }
-    @media (min-width: 1600px) and (max-width: 1799px) { .bar { gap: 18px; } .desk { gap: 0; } .desk a { padding: 8px 9px; } }
-    @media (min-width: 1025px) and (max-width: 1599px) {
+    @media (min-width: 1680px) and (max-width: 1799px) { .bar { gap: 18px; } .desk { gap: 0; } .desk a { padding: 8px 9px; } }
+    @media (min-width: 1025px) and (max-width: 1679px) {
       .bar { flex-wrap: wrap; row-gap: 0; column-gap: 14px; padding-top: 6px; }
       .prefs { order: 1; margin-left: auto; } .acts { order: 2; }
       .desk { order: 3; flex: 1 1 100%; justify-content: center; gap: 6px; padding: 4px 0 8px; margin-top: 6px;

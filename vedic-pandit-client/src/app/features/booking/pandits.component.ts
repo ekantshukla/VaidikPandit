@@ -1,11 +1,11 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AccountService, Pandit } from '../../core/services/account.service';
 import { STATES } from '../../core/services/location.service';
-import { BOOKING_CSS, BookingOffComponent, FaceComponent, PUJAS, SPOKEN, useTx } from './booking-ui';
+import { BOOKING_CSS, BookingOffComponent, FaceComponent, LANG_SPOKEN, PUJAS, REGIONS, SAMPRADAYAS, SPOKEN, useTx } from './booking-ui';
 
-/** Verified Pandits, filtered by state, puja and language. */
+/** Verified Pandits, filtered by state, puja, language, regional puja tradition and sampradaya. */
 @Component({
   selector: 'vp-pandits',
   standalone: true,
@@ -31,6 +31,14 @@ import { BOOKING_CSS, BookingOffComponent, FaceComponent, PUJAS, SPOKEN, useTx }
           <option value="">{{ t.tx('Any language', 'कोई भी भाषा') }}</option>
           @for (l of spoken; track l[0]) { <option [value]="l[0]">{{ t.pick(l) }}</option> }
         </select>
+        <select class="input" [(ngModel)]="region" aria-label="Regional tradition">
+          <option value="">{{ t.tx('Any regional paddhati', 'कोई भी क्षेत्रीय पद्धति') }}</option>
+          @for (r of regions; track r[0]) { <option [value]="r[0]">{{ t.pick(r) }}</option> }
+        </select>
+        <select class="input" [(ngModel)]="samp" aria-label="Sampradaya">
+          <option value="">{{ t.tx('Any sampradaya', 'कोई भी संप्रदाय') }}</option>
+          @for (s of sampradayas; track s[0]) { <option [value]="s[0]">{{ t.pick(s) }}</option> }
+        </select>
         <input class="input" [(ngModel)]="q" [placeholder]="t.tx('Name or city', 'नाम या शहर')" aria-label="Search">
       </div>
 
@@ -47,6 +55,7 @@ import { BOOKING_CSS, BookingOffComponent, FaceComponent, PUJAS, SPOKEN, useTx }
                 <b>{{ p.name }} <span class="vf" [title]="t.tx('Verified', 'सत्यापित')">✔</span></b>
                 <small>📍 {{ p.city }}@if (p.state) {, {{ stateName(p.state) }} }</small>
                 <small>🕉️ {{ p.experience }} {{ t.tx('yrs', 'वर्ष') }} · {{ langs(p) }}</small>
+                @if (p.traditions.length) { <small>🪔 {{ regionsText(p) }}</small> }
                 <span class="mini">@for (x of p.pujas.slice(0, 3); track x) { <i>{{ t.name(pujas, x) }}</i> }@if (p.pujas.length > 3) { <i>+{{ p.pujas.length - 3 }}</i> }</span>
               </span>
               @if (p.online) { <span class="on" [title]="t.tx('Available', 'उपलब्ध')"></span> }
@@ -65,7 +74,7 @@ import { BOOKING_CSS, BookingOffComponent, FaceComponent, PUJAS, SPOKEN, useTx }
     }
   </div>`,
   styles: [BOOKING_CSS + `
-    .filters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
+    .filters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
     .count { margin: 0 0 8px; font-size: var(--s-1); }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
     .pcard { position: relative; display: flex; gap: 14px; align-items: flex-start; padding: 14px 30px 14px 14px; border-radius: 16px; background: var(--card);
@@ -84,24 +93,32 @@ import { BOOKING_CSS, BookingOffComponent, FaceComponent, PUJAS, SPOKEN, useTx }
 })
 export class PanditsComponent {
   readonly acc = inject(AccountService);
+  private route = inject(ActivatedRoute);
   readonly t = useTx();
   readonly states = STATES;
   readonly pujas = PUJAS;
   readonly spoken = SPOKEN;
+  readonly regions = REGIONS;
+  readonly sampradayas = SAMPRADAYAS;
   readonly all = signal<Pandit[]>([]);
   readonly loading = signal(true);
   readonly error = signal('');
   // filters (signals so `shown` recomputes)
-  private readonly f = signal({ state: '', puja: '', lang: '', q: '' });
+  private readonly f = signal({ state: '', puja: '', lang: '', region: '', samp: '', q: '' });
   get state() { return this.f().state; } set state(v: string) { this.f.update(x => ({ ...x, state: v })); }
   get puja() { return this.f().puja; } set puja(v: string) { this.f.update(x => ({ ...x, puja: v })); }
   get lang() { return this.f().lang; } set lang(v: string) { this.f.update(x => ({ ...x, lang: v })); }
+  get region() { return this.f().region; } set region(v: string) { this.f.update(x => ({ ...x, region: v })); }
+  get samp() { return this.f().samp; } set samp(v: string) { this.f.update(x => ({ ...x, samp: v })); }
   get q() { return this.f().q; } set q(v: string) { this.f.update(x => ({ ...x, q: v })); }
 
   constructor() {
     if (!this.acc.configured) { this.loading.set(false); return; }
     // Default to the reader's own state when we know it
     try { const pl = JSON.parse(localStorage.getItem('vp.place') ?? 'null'); if (pl?.state) this.f.update(x => ({ ...x, state: pl.state })); } catch { /* ignore */ }
+    // Linked from Puja Paddhati with ?puja=…
+    const pj = this.route.snapshot.queryParamMap.get('puja');
+    if (pj && PUJAS.some(p => p[0] === pj)) this.f.update(x => ({ ...x, puja: pj }));
     this.acc.approvedPandits()
       .then(l => this.all.set(l.sort((a, b) => Number(b.online) - Number(a.online) || b.experience - a.experience)))
       .catch(e => this.error.set(this.acc.errorText(e, this.t.hi())))
@@ -109,10 +126,14 @@ export class PanditsComponent {
   }
 
   readonly shown = computed(() => {
-    const { state, puja, lang, q } = this.f();
+    const { state, puja, lang, region, samp, q } = this.f();
     const qq = q.trim().toLowerCase();
     let l = this.all().filter(p => (!puja || p.pujas.includes(puja)) && (!lang || p.languages.includes(lang))
+      && (!region || p.traditions.includes(region)) && (!samp || p.sampradaya === samp)
       && (!qq || p.name.toLowerCase().includes(qq) || p.city.toLowerCase().includes(qq)));
+    // Pandits who speak the reader's app language come first
+    const mine = LANG_SPOKEN[this.t.i18n.lang()];
+    if (mine && !lang) l = [...l].sort((a, b) => Number(b.languages.includes(mine)) - Number(a.languages.includes(mine)));
     // Same-state Pandits first, but never hide online pujas from other states
     if (state) l = l.filter(p => p.state === state || p.pujas.includes('Online Puja'))
       .sort((a, b) => Number(b.state === state) - Number(a.state === state));
@@ -120,5 +141,6 @@ export class PanditsComponent {
   });
 
   stateName(n: string) { const s = STATES.find(x => x.n === n); return s ? (this.t.hi() ? s.h : s.n) : n; }
+  regionsText(p: Pandit) { return p.traditions.slice(0, 2).map(r => this.t.name(REGIONS, r)).join(', '); }
   langs(p: Pandit) { return p.languages.slice(0, 3).map(l => this.t.name(SPOKEN, l)).join(', '); }
 }

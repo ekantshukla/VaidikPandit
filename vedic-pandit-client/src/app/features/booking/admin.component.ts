@@ -33,7 +33,7 @@ import { BOOKING_CSS, BookingOffComponent, FaceComponent, PUJAS, SPOKEN, intlPho
               <vp-face [photo]="p.photo" [name]="p.name" [size]="84" />
               <div class="who">
                 <h2>{{ p.name }}</h2>
-                <p class="muted">📍 {{ p.city }}, {{ p.state }} · {{ p.experience }} {{ t.tx('yrs', 'वर्ष') }}@if (p.sampradaya) { · {{ p.sampradaya }} }</p>
+                <p class="muted">📍 {{ p.city }}, {{ p.state }} · {{ p.experience }} {{ t.tx('yrs', 'वर्ष') }}@if (p.sampradaya) { · {{ p.sampradaya }} }@if (p.traditions.length) { · {{ p.traditions.join(', ') }} }</p>
                 <p class="contact">
                   <a [href]="'tel:+' + phone(p.phone)">📞 {{ p.phone }}</a>
                   @if (p.whatsapp || p.phone) { <a [href]="'https://wa.me/' + phone(p.whatsapp || p.phone)" target="_blank" rel="noopener">💬 WhatsApp</a> }
