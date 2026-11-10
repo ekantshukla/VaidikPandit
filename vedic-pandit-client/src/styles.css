@@ -131,3 +131,8 @@ input[type="date"].input { -webkit-appearance: none; appearance: none; min-width
 .lite *, .lite *::before, .lite *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 .lite .tabbar, .lite .bot-fab .ring, .lite .fab-label, .lite .sheet, .lite .botwin, .lite .rf-btn { box-shadow: none !important; }
 .lite .tick span { padding-left: 0 !important; }
+
+/* Mandatory field marker */
+.req { color: var(--sindoor); font-weight: 700; margin-left: 3px; }
+.reqnote { margin: 0; font-size: .8rem; color: var(--muted); }
+.field .hint { display: block; margin-top: 4px; font-size: .8rem; color: var(--muted); }
