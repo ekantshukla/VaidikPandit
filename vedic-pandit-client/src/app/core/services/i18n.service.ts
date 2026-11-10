@@ -249,6 +249,15 @@ const mr: Dict = {
   day: 'दिवस', night: 'रात्र', until: 'पर्यंत', observances: 'सण व व्रत', now: 'आता', good: 'शुभ', avoid: 'वर्ज्य',
   ask: 'विचारा', askPlaceholder: 'श्लोक, सण किंवा आजच्या राहुकाळाबद्दल विचारा…', find: 'मुहूर्त शोधा', play: 'जप करा', pause: 'थांबा',
   meaning: 'अर्थ', pronunciation: 'उच्चार', location: 'स्थान', date: 'दिनांक', todayBtn: 'आज', search: 'श्लोक शोधा', you: 'तुम्ही', panditji: 'AI पंडितजी',
+  // Section names and common labels in this language (so pages do not mix in English words)
+  'nav.rashifal': 'राशीभविष्य', rashifalTitle: 'राशीभविष्य',
+  'nav.learn': 'मंत्र शिका', learnTitle: 'मंत्र शिका', 'nav.samagri': 'पूजा साहित्य', samagriTitle: 'पूजा साहित्य', muhuratTitle: 'मुहूर्त शोधा', granthTitle: 'ग्रंथ',
+  mantraTitle: 'मंत्र उच्चार', libTranslated: 'गीता आणि उपनिषदे अनुवादासह', libCategories: 'विभाग', allTexts: 'सर्व', kindMantra: 'मंत्र', kindStotra: 'स्तोत्रे',
+  kindChalisa: 'चालीसा व आरती', rfToday: 'आज', rfTomorrow: 'उद्या', rfWeek: 'साप्ताहिक', rfMonth: 'मासिक', appTitle: 'वैदिक पंडित ॲप मिळवा',
+  purnimanta: 'पौर्णिमांत (उत्तर भारत)', amanta: 'अमांत (महाराष्ट्र, दक्षिण)', monthSystem: 'मास पद्धत', tradition: 'संप्रदाय', auspicious: 'शुभ वेळ',
+  inauspicious: 'वर्ज्य वेळ', neutral: 'सामान्य', loading: 'लोड होत आहे…', more: 'अधिक', prevDay: 'मागील दिवस', nextDayBtn: 'पुढील दिवस', chapter: 'अध्याय',
+  verses: 'श्लोक', event: 'प्रसंग', from: 'पासून', to: 'पर्यंत', dailyPuja: 'नित्य पूजा, क्रमाने', libGita: 'भगवद्गीता', libChapters: 'अध्याय',
+  libReadChapter: 'संपूर्ण अध्याय वाचा', nothingFound: 'काहीही सापडले नाही.', why: 'ही वेळ का',
 };
 
 const kn: Dict = {
@@ -267,6 +276,15 @@ const kn: Dict = {
   day: 'ಹಗಲು', night: 'ರಾತ್ರಿ', until: 'ವರೆಗೆ', observances: 'ಹಬ್ಬ ಮತ್ತು ವ್ರತ', now: 'ಈಗ', good: 'ಶುಭ', avoid: 'ವರ್ಜ್ಯ',
   ask: 'ಕೇಳಿ', askPlaceholder: 'ಶ್ಲೋಕ, ಹಬ್ಬ ಅಥವಾ ಇಂದಿನ ರಾಹುಕಾಲದ ಬಗ್ಗೆ ಕೇಳಿ…', find: 'ಮುಹೂರ್ತ ಹುಡುಕಿ', play: 'ಜಪಿಸಿ', pause: 'ನಿಲ್ಲಿಸಿ',
   meaning: 'ಅರ್ಥ', pronunciation: 'ಉಚ್ಚಾರಣೆ', location: 'ಸ್ಥಳ', date: 'ದಿನಾಂಕ', todayBtn: 'ಇಂದು', search: 'ಶ್ಲೋಕ ಹುಡುಕಿ', you: 'ನೀವು', panditji: 'AI ಪಂಡಿತರು',
+  // Section names and common labels in this language (so pages do not mix in English words)
+  'nav.rashifal': 'ರಾಶಿ ಭವಿಷ್ಯ', rashifalTitle: 'ರಾಶಿ ಭವಿಷ್ಯ',
+  'nav.learn': 'ಮಂತ್ರ ಕಲಿಯಿರಿ', learnTitle: 'ಮಂತ್ರ ಕಲಿಯಿರಿ', 'nav.samagri': 'ಪೂಜಾ ಸಾಮಗ್ರಿ', samagriTitle: 'ಪೂಜಾ ಸಾಮಗ್ರಿ', muhuratTitle: 'ಮುಹೂರ್ತ ಹುಡುಕಿ',
+  granthTitle: 'ಗ್ರಂಥ', mantraTitle: 'ಮಂತ್ರ ಉಚ್ಚಾರಣೆ', libTranslated: 'ಅನುವಾದ ಸಹಿತ ಗೀತೆ ಮತ್ತು ಉಪನಿಷತ್ತುಗಳು', libCategories: 'ವಿಭಾಗಗಳು', allTexts: 'ಎಲ್ಲಾ',
+  kindMantra: 'ಮಂತ್ರಗಳು', kindStotra: 'ಸ್ತೋತ್ರಗಳು', kindChalisa: 'ಚಾಲೀಸಾ ಮತ್ತು ಆರತಿ', rfToday: 'ಇಂದು', rfTomorrow: 'ನಾಳೆ', rfWeek: 'ಈ ವಾರ', rfMonth: 'ಈ ತಿಂಗಳು',
+  appTitle: 'ವೈದಿಕ ಪಂಡಿತ ಆ್ಯಪ್ ಪಡೆಯಿರಿ', purnimanta: 'ಪೂರ್ಣಿಮಾಂತ (ಉತ್ತರ ಭಾರತ)', amanta: 'ಅಮಾಂತ (ಕರ್ನಾಟಕ, ದಕ್ಷಿಣ)', monthSystem: 'ಮಾಸ ಪದ್ಧತಿ', tradition: 'ಸಂಪ್ರದಾಯ',
+  auspicious: 'ಶುಭ ಸಮಯ', inauspicious: 'ವರ್ಜ್ಯ ಸಮಯ', neutral: 'ಸಾಮಾನ್ಯ', loading: 'ಲೋಡ್ ಆಗುತ್ತಿದೆ…', more: 'ಇನ್ನಷ್ಟು', prevDay: 'ಹಿಂದಿನ ದಿನ', nextDayBtn: 'ಮುಂದಿನ ದಿನ',
+  chapter: 'ಅಧ್ಯಾಯ', verses: 'ಶ್ಲೋಕಗಳು', event: 'ಸಂದರ್ಭ', from: 'ಆರಂಭ', to: 'ಕೊನೆ', dailyPuja: 'ನಿತ್ಯ ಪೂಜೆ, ಹಂತ ಹಂತವಾಗಿ', libGita: 'ಭಗವದ್ಗೀತೆ', libChapters: 'ಅಧ್ಯಾಯಗಳು',
+  libReadChapter: 'ಪೂರ್ತಿ ಅಧ್ಯಾಯ ಓದಿ', nothingFound: 'ಏನೂ ಸಿಗಲಿಲ್ಲ.', why: 'ಈ ಸಮಯ ಏಕೆ',
 };
 
 const ta: Dict = {
@@ -285,6 +303,16 @@ const ta: Dict = {
   day: 'பகல்', night: 'இரவு', until: 'வரை', observances: 'பண்டிகை, விரதம்', now: 'இப்போது', good: 'நல்லது', avoid: 'தவிர்க்கவும்',
   ask: 'கேளுங்கள்', askPlaceholder: 'ஸ்லோகம், பண்டிகை அல்லது இன்றைய ராகு காலம் பற்றி கேளுங்கள்…', find: 'முகூர்த்தம் தேடு', play: 'ஜபிக்கவும்', pause: 'நிறுத்து',
   meaning: 'பொருள்', pronunciation: 'உச்சரிப்பு', location: 'இடம்', date: 'தேதி', todayBtn: 'இன்று', search: 'ஸ்லோகம் தேடு', you: 'நீங்கள்', panditji: 'AI பண்டிதர்',
+  // Section names and common labels in this language (so pages do not mix in English words)
+  'nav.rashifal': 'ராசி பலன்', rashifalTitle: 'ராசி பலன்',
+  'nav.learn': 'மந்திரம் கற்க', learnTitle: 'மந்திரங்கள் கற்க', 'nav.samagri': 'பூஜை பொருட்கள்', samagriTitle: 'பூஜை பொருட்கள்', muhuratTitle: 'முகூர்த்தம் தேடு',
+  granthTitle: 'புனித நூல்கள்', mantraTitle: 'மந்திர உச்சரிப்பு', libTranslated: 'மொழிபெயர்ப்புடன் கீதை, உபநிடதங்கள்', libCategories: 'பிரிவுகள்', allTexts: 'அனைத்தும்',
+  kindMantra: 'மந்திரங்கள்', kindStotra: 'ஸ்தோத்திரங்கள்', kindChalisa: 'சாலீசா & ஆரத்தி', rfToday: 'இன்று', rfTomorrow: 'நாளை', rfWeek: 'இந்த வாரம்',
+  rfMonth: 'இந்த மாதம்', appTitle: 'வைதிக பண்டிதர் செயலியைப் பெறுக', purnimanta: 'பௌர்ணமாந்தம் (வட இந்தியா)', amanta: 'அமாந்தம் (தென்/மேற்கு)', monthSystem: 'மாத முறை',
+  tradition: 'சம்பிரதாயம்', auspicious: 'நல்ல நேரம்', inauspicious: 'தவிர்க்க வேண்டிய நேரம்', neutral: 'சாதாரணம்', loading: 'ஏற்றுகிறது…', more: 'மேலும்',
+  prevDay: 'முந்தைய நாள்', nextDayBtn: 'அடுத்த நாள்', chapter: 'அத்தியாயம்', verses: 'ஸ்லோகங்கள்', event: 'நிகழ்வு', from: 'முதல்', to: 'வரை',
+  dailyPuja: 'தினசரி பூஜை, படிப்படியாக', libGita: 'பகவத் கீதை', libChapters: 'அத்தியாயங்கள்', libReadChapter: 'முழு அத்தியாயத்தைப் படிக்க',
+  nothingFound: 'எதுவும் கிடைக்கவில்லை.', why: 'ஏன் இந்த நேரம்',
 };
 
 const te: Dict = {
@@ -303,6 +331,15 @@ const te: Dict = {
   day: 'పగలు', night: 'రాత్రి', until: 'వరకు', observances: 'పండుగలు, వ్రతాలు', now: 'ఇప్పుడు', good: 'శుభం', avoid: 'వర్జ్యం',
   ask: 'అడగండి', askPlaceholder: 'శ్లోకం, పండుగ లేదా ఈరోజు రాహుకాలం గురించి అడగండి…', find: 'ముహూర్తం వెతకండి', play: 'జపించండి', pause: 'ఆపండి',
   meaning: 'అర్థం', pronunciation: 'ఉచ్చారణ', location: 'స్థలం', date: 'తేదీ', todayBtn: 'ఈరోజు', search: 'శ్లోకం వెతకండి', you: 'మీరు', panditji: 'AI పండితుడు',
+  // Section names and common labels in this language (so pages do not mix in English words)
+  'nav.rashifal': 'రాశి ఫలాలు', rashifalTitle: 'రాశి ఫలాలు',
+  'nav.learn': 'మంత్రాలు నేర్చుకోండి', learnTitle: 'మంత్రాలు నేర్చుకోండి', 'nav.samagri': 'పూజా సామగ్రి', samagriTitle: 'పూజా సామగ్రి', muhuratTitle: 'ముహూర్తం వెతకండి',
+  granthTitle: 'గ్రంథాలు', mantraTitle: 'మంత్ర ఉచ్చారణ', libTranslated: 'అనువాదంతో గీత, ఉపనిషత్తులు', libCategories: 'విభాగాలు', allTexts: 'అన్నీ', kindMantra: 'మంత్రాలు',
+  kindStotra: 'స్తోత్రాలు', kindChalisa: 'చాలీసా & ఆరతి', rfToday: 'ఈ రోజు', rfTomorrow: 'రేపు', rfWeek: 'ఈ వారం', rfMonth: 'ఈ నెల',
+  appTitle: 'వైదిక పండితుడు యాప్ పొందండి', purnimanta: 'పూర్ణిమాంతం (ఉత్తర భారతం)', amanta: 'అమాంతం (ఆంధ్ర, తెలంగాణ, దక్షిణం)', monthSystem: 'మాస విధానం',
+  tradition: 'సంప్రదాయం', auspicious: 'శుభ సమయం', inauspicious: 'వర్జ్య సమయం', neutral: 'సాధారణం', loading: 'లోడ్ అవుతోంది…', more: 'మరిన్ని', prevDay: 'ముందు రోజు',
+  nextDayBtn: 'తర్వాతి రోజు', chapter: 'అధ్యాయం', verses: 'శ్లోకాలు', event: 'సందర్భం', from: 'నుండి', to: 'వరకు', dailyPuja: 'నిత్య పూజ, క్రమంగా', libGita: 'భగవద్గీత',
+  libChapters: 'అధ్యాయాలు', libReadChapter: 'పూర్తి అధ్యాయం చదవండి', nothingFound: 'ఏమీ దొరకలేదు.', why: 'ఈ సమయం ఎందుకు',
 };
 
 const bn: Dict = {
@@ -321,6 +358,15 @@ const bn: Dict = {
   day: 'দিন', night: 'রাত', until: 'পর্যন্ত', observances: 'উৎসব ও ব্রত', now: 'এখন', good: 'শুভ', avoid: 'বর্জনীয়',
   ask: 'জিজ্ঞাসা', askPlaceholder: 'শ্লোক, উৎসব বা আজকের রাহুকাল সম্পর্কে জিজ্ঞাসা করুন…', find: 'মুহূর্ত খুঁজুন', play: 'জপ করুন', pause: 'থামুন',
   meaning: 'অর্থ', pronunciation: 'উচ্চারণ', location: 'স্থান', date: 'তারিখ', todayBtn: 'আজ', search: 'শ্লোক খুঁজুন', you: 'আপনি', panditji: 'AI পণ্ডিতজি',
+  // Section names and common labels in this language (so pages do not mix in English words)
+  'nav.rashifal': 'রাশিফল', rashifalTitle: 'রাশিফল',
+  'nav.learn': 'মন্ত্র শিখুন', learnTitle: 'মন্ত্র শিখুন', 'nav.samagri': 'পূজার উপকরণ', samagriTitle: 'পূজার উপকরণ', muhuratTitle: 'শুভ মুহূর্ত খুঁজুন',
+  granthTitle: 'গ্রন্থ', mantraTitle: 'মন্ত্র উচ্চারণ', libTranslated: 'অনুবাদসহ গীতা ও উপনিষদ', libCategories: 'বিভাগ', allTexts: 'সব', kindMantra: 'মন্ত্র',
+  kindStotra: 'স্তোত্র', kindChalisa: 'চালিসা ও আরতি', rfToday: 'আজ', rfTomorrow: 'আগামীকাল', rfWeek: 'এই সপ্তাহ', rfMonth: 'এই মাস', appTitle: 'বৈদিক পণ্ডিত অ্যাপ নিন',
+  purnimanta: 'পূর্ণিমান্ত (উত্তর ভারত)', amanta: 'অমান্ত (দক্ষিণ/পশ্চিম)', monthSystem: 'মাস গণনা', tradition: 'সম্প্রদায়', auspicious: 'শুভ সময়',
+  inauspicious: 'বর্জনীয় সময়', neutral: 'সাধারণ', loading: 'লোড হচ্ছে…', more: 'আরও', prevDay: 'আগের দিন', nextDayBtn: 'পরের দিন', chapter: 'অধ্যায়', verses: 'শ্লোক',
+  event: 'উপলক্ষ', from: 'থেকে', to: 'পর্যন্ত', dailyPuja: 'নিত্য পূজা, ধাপে ধাপে', libGita: 'ভগবদ্গীতা', libChapters: 'অধ্যায়', libReadChapter: 'পুরো অধ্যায় পড়ুন',
+  nothingFound: 'কিছু পাওয়া যায়নি।', why: 'কেন এই সময়',
 };
 
 const gu: Dict = {
@@ -339,6 +385,15 @@ const gu: Dict = {
   day: 'દિવસ', night: 'રાત', until: 'સુધી', observances: 'તહેવાર અને વ્રત', now: 'હમણાં', good: 'શુભ', avoid: 'વર્જ્ય',
   ask: 'પૂછો', askPlaceholder: 'શ્લોક, તહેવાર અથવા આજના રાહુકાળ વિશે પૂછો…', find: 'મુહૂર્ત શોધો', play: 'જપ કરો', pause: 'રોકો',
   meaning: 'અર્થ', pronunciation: 'ઉચ્ચાર', location: 'સ્થળ', date: 'તારીખ', todayBtn: 'આજે', search: 'શ્લોક શોધો', you: 'તમે', panditji: 'AI પંડિતજી',
+  // Section names and common labels in this language (so pages do not mix in English words)
+  'nav.rashifal': 'રાશિફળ', rashifalTitle: 'રાશિફળ',
+  'nav.learn': 'મંત્ર શીખો', learnTitle: 'મંત્ર શીખો', 'nav.samagri': 'પૂજા સામગ્રી', samagriTitle: 'પૂજા સામગ્રી', muhuratTitle: 'મુહૂર્ત શોધો', granthTitle: 'ગ્રંથ',
+  mantraTitle: 'મંત્ર ઉચ્ચાર', libTranslated: 'અનુવાદ સાથે ગીતા અને ઉપનિષદ', libCategories: 'વિભાગો', allTexts: 'બધું', kindMantra: 'મંત્ર', kindStotra: 'સ્તોત્ર',
+  kindChalisa: 'ચાલીસા અને આરતી', rfToday: 'આજે', rfTomorrow: 'આવતીકાલે', rfWeek: 'આ અઠવાડિયું', rfMonth: 'આ મહિનો', appTitle: 'વૈદિક પંડિત ઍપ મેળવો',
+  purnimanta: 'પૂર્ણિમાંત (ઉત્તર ભારત)', amanta: 'અમાંત (ગુજરાત, દક્ષિણ)', monthSystem: 'માસ પદ્ધતિ', tradition: 'સંપ્રદાય', auspicious: 'શુભ સમય',
+  inauspicious: 'વર્જ્ય સમય', neutral: 'સામાન્ય', loading: 'લોડ થાય છે…', more: 'વધુ', prevDay: 'પાછલો દિવસ', nextDayBtn: 'આવતો દિવસ', chapter: 'અધ્યાય', verses: 'શ્લોક',
+  event: 'પ્રસંગ', from: 'થી', to: 'સુધી', dailyPuja: 'નિત્ય પૂજા, ક્રમસર', libGita: 'ભગવદ્ ગીતા', libChapters: 'અધ્યાય', libReadChapter: 'આખો અધ્યાય વાંચો',
+  nothingFound: 'કંઈ મળ્યું નહીં.', why: 'આ સમય કેમ',
 };
 
 const DICTS: Record<string, Dict> = { en, hi, mr, kn, ta, te, bn, gu };
@@ -349,6 +404,27 @@ export class I18nService {
   readonly current = computed(() => LANGS.find(l => l.code === this.lang()) ?? LANGS[0]);
   /** Hindi-script languages read Sanskrit names best; others get the romanised name. */
   readonly prefersDevanagari = computed(() => ['hi', 'mr'].includes(this.lang()));
+
+  constructor() {
+    if (typeof document === 'undefined') return;
+    // Tell the browser which language the page is really in, so Chrome's "Translate" does not
+    // treat (say) an English page as Hindi and garble words like Granth / Grantha.
+    document.documentElement.lang = this.lang();
+    // Sanskrit names, mantras and shlokas (class "sa") must never be machine-translated.
+    const mark = (root: ParentNode) => root.querySelectorAll?.('.sa:not([translate])').forEach(el => el.setAttribute('translate', 'no'));
+    const start = () => {
+      mark(document);
+      new MutationObserver(list => {
+        for (const m of list) {
+          if (m.type === 'attributes') { const el = m.target as Element; if (el.classList?.contains('sa') && !el.hasAttribute('translate')) el.setAttribute('translate', 'no'); continue; }
+          m.addedNodes.forEach(n => {
+            if (n instanceof Element) { if (n.classList.contains('sa')) n.setAttribute('translate', 'no'); mark(n); }
+          });
+        }
+      }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+    };
+    if (document.body) start(); else document.addEventListener('DOMContentLoaded', start);
+  }
 
   private initial(): string {
     try { const s = localStorage.getItem('vp.lang'); if (s && DICTS[s]) return s; } catch { /* storage blocked */ }
